@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(gh auth:*)",
+      "Bash(brew install:*)",
+      "Bash(which git:*)",
+      "Read(//Users/martinrobledo/**)",
+      "Read(//Users/martinrobledo/.ssh/**)",
+      "Read(//opt/homebrew/bin/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(curl -sL https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_macOS_arm64.tar.gz -o /tmp/gh.tar.gz)",
+      "Bash(tar -xzf /tmp/gh.tar.gz -C /tmp)",
+      "Read(//tmp/gh_2.63.2_macOS_arm64/**)",
+      "Bash(curl:*)",
+      "Bash(unzip -q /tmp/gh.zip -d /tmp/gh_install)",
+      "Read(//tmp/**)",
+      "Bash(cp:*)",
+      "Bash(~/bin/gh auth:*)",
+      "Bash(git init:*)"
+    ]
+  }
+}
