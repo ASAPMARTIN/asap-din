@@ -9,7 +9,7 @@
   }
 
   body {
-    background-color: #FAFAF8;
+    background-color: #0f1a2e;
     color: #111827;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -21,6 +21,11 @@
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
+    max-width: 430px;
+    margin: 0 auto;
+    background-color: #FAFAF8;
+    position: relative;
+    box-shadow: 0 0 80px rgba(0,0,0,0.6);
   }
 }
 
@@ -105,4 +110,18 @@
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* ── Desktop phone shell: keep fixed elements inside the 430px container ── */
+@media (min-width: 431px) {
+  .fixed {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    max-width: 430px !important;
+    width: 430px !important;
+  }
+  /* Restore transforms that are also used for centering modals */
+  .fixed.-translate-x-1\/2 {
+    transform: translateX(-50%) !important;
+  }
 }
