@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ThumbsUp, MessageCircle, Share2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Repeat2, Share2, ChevronDown, ChevronUp } from 'lucide-react';
 import VerifiedBadge from './VerifiedBadge';
 import BrokerChip from './BrokerChip';
 import ShareSheet from './ShareSheet';
@@ -52,7 +52,7 @@ function MentionText({ body, truncated = false }) {
 
 export default function PostCard({ post, onClick }) {
   const navigate = useNavigate();
-  const { upvotePost, hasUpvotedPost } = usePosts();
+  const { upvotePost, hasUpvotedPost, repostPost, hasReposted } = usePosts();
   const { language } = useAuth();
   const { isFollowing } = useFollows();
   const [shareOpen, setShareOpen] = useState(false);
@@ -62,6 +62,7 @@ export default function PostCard({ post, onClick }) {
 
   const avatarColor = author.avatar_color || getAvatarColor(author.display_name);
   const isUpvoted = hasUpvotedPost(post.id);
+  const isReposted = hasReposted(post.id);
   const threadBorder = THREAD_COLORS[post.thread] || 'border-l-gray-200';
   const following = isFollowing(author.id);
 
@@ -73,6 +74,11 @@ export default function PostCard({ post, onClick }) {
   const handleUpvote = (e) => {
     e.stopPropagation();
     upvotePost(post.id);
+  };
+
+  const handleRepost = (e) => {
+    e.stopPropagation();
+    repostPost(post.id);
   };
 
   const handleShare = (e) => {
@@ -126,7 +132,7 @@ export default function PostCard({ post, onClick }) {
         </div>
 
         {/* Footer actions */}
-        <div className="flex items-center gap-2 pl-14">
+        <div className="flex items-center gap-1 pl-14">
           <button
             onClick={handleUpvote}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all btn-press ${
@@ -145,6 +151,18 @@ export default function PostCard({ post, onClick }) {
           >
             <MessageCircle size={16} />
             <span>{post.reply_count}</span>
+          </button>
+
+          <button
+            onClick={handleRepost}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all btn-press ${
+              isReposted
+                ? 'bg-green-50 text-green-600'
+                : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+            }`}
+          >
+            <Repeat2 size={16} />
+            <span>{post.repost_count > 0 ? post.repost_count : ''}</span>
           </button>
 
           <button

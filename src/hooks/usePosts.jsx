@@ -5,9 +5,10 @@ import { CURRENT_USER_ID } from '../data/mockUsers';
 const PostsContext = createContext(null);
 
 export function PostsProvider({ children }) {
-  const [posts, setPosts] = useState([...mockPosts, ...pollPosts]);
+  const [posts, setPosts] = useState([...mockPosts, ...pollPosts].map(p => ({ ...p, repost_count: p.repost_count || 0 })));
   const [replies, setReplies] = useState(mockReplies);
   const [userUpvotes, setUserUpvotes] = useState(new Set());
+  const [userReposts, setUserReposts] = useState(new Set());
 
   const getPost = useCallback((id) => {
     return posts.find(p => p.id === id) || null;
@@ -58,6 +59,18 @@ export function PostsProvider({ children }) {
 
   const hasUpvotedPost = useCallback((postId) => userUpvotes.has(`post_${postId}`), [userUpvotes]);
   const hasUpvotedReply = useCallback((replyId) => userUpvotes.has(`reply_${replyId}`), [userUpvotes]);
+
+  const repostPost = useCallback((postId) => {
+    if (userReposts.has(postId)) {
+      setUserReposts(prev => { const n = new Set(prev); n.delete(postId); return n; });
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, repost_count: Math.max(0, p.repost_count - 1) } : p));
+    } else {
+      setUserReposts(prev => new Set([...prev, postId]));
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, repost_count: p.repost_count + 1 } : p));
+    }
+  }, [userReposts]);
+
+  const hasReposted = useCallback((postId) => userReposts.has(postId), [userReposts]);
 
   const createPost = useCallback((thread, body, isPinned = false) => {
     const newPost = {
@@ -152,6 +165,8 @@ export function PostsProvider({ children }) {
       togglePin,
       votePoll,
       createPostWithPoll,
+      repostPost,
+      hasReposted,
     }}>
       {children}
     </PostsContext.Provider>
