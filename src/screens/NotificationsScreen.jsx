@@ -95,6 +95,10 @@ export default function NotificationsScreen() {
                     <p className={`text-sm leading-snug mb-0.5 ${!notif.read ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
                       {notif.type === 'reply_to_post'
                         ? `${notif.actor_name} ${language === 'es' ? 'respondió a tu publicación' : 'replied to your post'}`
+                        : notif.type === 'profile_view'
+                        ? `${notif.actor_name} ${language === 'es' ? 'vio tu perfil' : 'viewed your profile'}`
+                        : notif.type === 'user_mention'
+                        ? `${notif.actor_name} ${language === 'es' ? 'te mencionó en una publicación' : 'mentioned you in a post'}`
                         : `${notif.actor_name} ${language === 'es' ? 'mencionó a' : 'mentioned'} @${notif.broker_name}`
                       }
                     </p>

@@ -137,7 +137,7 @@ export function PostsProvider({ children }) {
     setUserReposts(prev => new Set([...prev, postId]));
   }, [posts, userReposts]);
 
-  const createPostWithPoll = useCallback((thread, body, isPinned = false, pollData = null, imageUrl = null, quotedPostId = null) => {
+  const createPostWithPoll = useCallback((thread, body, isPinned = false, pollData = null, imageUrl = null, quotedPostId = null, flair = null) => {
     const newPost = {
       id: `p-new-${Date.now()}`,
       author_id: CURRENT_USER_ID,
@@ -149,6 +149,7 @@ export function PostsProvider({ children }) {
       is_pinned_to_profile: isPinned,
       created_at: new Date().toISOString(),
       mentions: [],
+      ...(flair ? { flair } : {}),
       ...(pollData ? {
         poll_question: pollData.question,
         poll_options: pollData.options.map((text, i) => ({ id: `po-new-${Date.now()}-${i}`, text, vote_count: 0 })),

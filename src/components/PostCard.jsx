@@ -17,6 +17,17 @@ import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';
 import { useFollows } from '../hooks/useFollows';
 import { useBlocked } from '../hooks/useBlocked';
+import { useMessages } from '../hooks/useMessages';
+import { mockUsers } from '../data/mockUsers';
+import UserChip from './UserChip';
+
+const FLAIR_CONFIG = {
+  alerta: { label: '🚨 Alerta', bg: 'bg-red-100', text: 'text-red-700' },
+  pregunta: { label: '❓ Pregunta', bg: 'bg-blue-100', text: 'text-blue-700' },
+  tarifa: { label: '💰 Tarifa', bg: 'bg-emerald-100', text: 'text-emerald-700' },
+  consejo: { label: '💡 Consejo', bg: 'bg-amber-100', text: 'text-amber-700' },
+  encuesta: { label: '📊 Encuesta', bg: 'bg-purple-100', text: 'text-purple-700' },
+};
 
 const EQUIPMENT_LABELS = {
   dry_van: 'Dry Van', flatbed: 'Flatbed', reefer: 'Reefer',
@@ -55,6 +66,8 @@ function MentionText({ body, truncated = false }) {
         {segments.map((seg, i) =>
           seg.type === 'mention'
             ? <BrokerChip key={i} brokerId={seg.brokerId} brokerName={seg.brokerName} inline />
+            : seg.type === 'user_mention'
+            ? <UserChip key={i} userId={seg.userId} name={seg.userName} inline />
             : <span key={i}>{seg.content}</span>
         )}
       </p>
@@ -98,6 +111,7 @@ export default function PostCard({ post, onClick }) {
   const { language, currentUser } = useAuth();
   const { isFollowing } = useFollows();
   const { isBlocked } = useBlocked();
+  const { sendSharedPost, conversations } = useMessages();
   const [shareOpen, setShareOpen] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
@@ -107,6 +121,7 @@ export default function PostCard({ post, onClick }) {
   const [deleteSheetOpen, setDeleteSheetOpen] = useState(false);
   const [reportSheetOpen, setReportSheetOpen] = useState(false);
   const [repostSheetOpen, setRepostSheetOpen] = useState(false);
+  const [dmShareOpen, setDmShareOpen] = useState(false);
 
   const longPressTimer = useRef(null);
 
@@ -169,7 +184,13 @@ export default function PostCard({ post, onClick }) {
 
   const handleShare = (e) => {
     e.stopPropagation();
-    setShareOpen(true);
+    setDmShareOpen(true);
+  };
+
+  const handleSendToDM = (userId) => {
+    sendSharedPost(userId, post.id);
+    setDmShareOpen(false);
+    showToast(language === 'es' ? 'Publicación enviada ✓' : 'Post sent ✓');
   };
 
   const handleRepost = (e) => {
@@ -300,7 +321,7 @@ export default function PostCard({ post, onClick }) {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
               <span className="text-sm text-gray-400">{timeAgo(post.created_at, language)}</span>
               {post.updated_at && (
                 <span className="text-xs text-gray-400 italic">(editado)</span>
@@ -309,6 +330,11 @@ export default function PostCard({ post, onClick }) {
               <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">
                 {EQUIPMENT_LABELS[author.equipment_type] || author.equipment_type}
               </span>
+              {post.flair && FLAIR_CONFIG[post.flair] && (
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${FLAIR_CONFIG[post.flair].bg} ${FLAIR_CONFIG[post.flair].text}`}>
+                  {FLAIR_CONFIG[post.flair].label}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -427,7 +453,7 @@ export default function PostCard({ post, onClick }) {
         </div>
       </div>
 
-      {/* Share sheet */}
+      {/* Share sheet (external) */}
       <ShareSheet
         isOpen={shareOpen}
         onClose={() => setShareOpen(false)}
@@ -436,6 +462,44 @@ export default function PostCard({ post, onClick }) {
         title="Publicación en ASAP-DIN"
         lang={language}
       />
+
+      {/* DM Share sheet */}
+      <BottomSheet isOpen={dmShareOpen} onClose={() => setDmShareOpen(false)}>
+        <div className="px-4 pb-6 pt-2">
+          <h3 className="text-base font-bold text-gray-900 mb-1 text-center">
+            {language === 'es' ? 'Enviar a...' : 'Send to...'}
+          </h3>
+          <div className="mb-3">
+            <button
+              onClick={() => { setDmShareOpen(false); setShareOpen(true); }}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-2xl mb-2 btn-press hover:bg-gray-100 transition-colors"
+            >
+              <span className="text-lg">🔗</span>
+              <span className="text-sm font-semibold text-gray-800">{language === 'es' ? 'Compartir enlace' : 'Share link'}</span>
+            </button>
+          </div>
+          <div className="max-h-64 overflow-y-auto space-y-1">
+            {mockUsers.filter(u => u.id !== currentUser?.id && !isBlocked(u.id)).map(u => (
+              <button
+                key={u.id}
+                onClick={() => handleSendToDM(u.id)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors btn-press"
+              >
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                  style={{ backgroundColor: u.avatar_color }}
+                >
+                  {u.avatar_initials}
+                </div>
+                <span className="flex-1 text-sm font-medium text-gray-900 text-left truncate">{u.display_name}</span>
+                <span className="text-xs font-semibold text-[#0F1A2E] border border-[#0F1A2E] px-2.5 py-1 rounded-full flex-shrink-0">
+                  {language === 'es' ? 'Enviar' : 'Send'}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </BottomSheet>
 
       {/* Image lightbox */}
       {lightboxOpen && post.image_url && (

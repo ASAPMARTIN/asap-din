@@ -20,7 +20,7 @@ function Toggle({ checked, onChange }) {
 
 export default function SettingsScreen() {
   const navigate = useNavigate();
-  const { currentUser, language, notifications, toggleLanguage, updateNotifications, logout, resetOnboarding } = useAuth();
+  const { currentUser, language, notifications, readReceipts, toggleLanguage, updateNotifications, toggleReadReceipts, logout, resetOnboarding } = useAuth();
   const { getBlockedList, unblockUser } = useBlocked();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -116,7 +116,7 @@ export default function SettingsScreen() {
                 onChange={(val) => updateNotifications({ pushEnabled: val })}
               />
             </div>
-            <div className="px-4 py-3.5 flex items-center justify-between">
+            <div className="px-4 py-3.5 flex items-center justify-between border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Bell size={18} className="text-gray-400" />
                 <div>
@@ -131,6 +131,23 @@ export default function SettingsScreen() {
               <Toggle
                 checked={notifications.digestEnabled}
                 onChange={(val) => updateNotifications({ digestEnabled: val })}
+              />
+            </div>
+            <div className="px-4 py-3.5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CheckCircle size={18} className="text-gray-400" />
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {language === 'es' ? 'Confirmaciones de lectura' : 'Read receipts'}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {language === 'es' ? 'Muestra ✓✓ azul cuando leen tus mensajes' : 'Show blue ✓✓ when messages are read'}
+                  </p>
+                </div>
+              </div>
+              <Toggle
+                checked={readReceipts}
+                onChange={toggleReadReceipts}
               />
             </div>
           </div>

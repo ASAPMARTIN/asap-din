@@ -5,6 +5,9 @@ import { BrokersProvider } from './hooks/useBrokers';
 import { FollowsProvider } from './hooks/useFollows';
 import { MessagesProvider } from './hooks/useMessages';
 import { BlockedProvider } from './hooks/useBlocked';
+import { EndorsementsProvider } from './hooks/useEndorsements';
+import { ProfileViewsProvider } from './hooks/useProfileViews';
+import { SuggestionsProvider } from './hooks/useSuggestions';
 
 import InviteScreen from './screens/InviteScreen';
 import SignupScreen from './screens/SignupScreen';
@@ -21,6 +24,7 @@ import MemberDirectoryScreen from './screens/MemberDirectoryScreen';
 import MessagesListScreen from './screens/MessagesListScreen';
 import ChatScreen from './screens/ChatScreen';
 import PostSearchScreen from './screens/PostSearchScreen';
+import DiscoverScreen from './screens/DiscoverScreen';
 
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
@@ -49,6 +53,9 @@ function AppRoutes() {
       <Route path="/messages" element={<MessagesListScreen />} />
       <Route path="/messages/:userId" element={<ChatScreen />} />
 
+      {/* Discover */}
+      <Route path="/discover" element={<DiscoverScreen />} />
+
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -61,13 +68,19 @@ export default function App() {
       <AuthProvider>
         <BlockedProvider>
           <FollowsProvider>
-            <BrokersProvider>
-              <PostsProvider>
-                <MessagesProvider>
-                  <AppRoutes />
-                </MessagesProvider>
-              </PostsProvider>
-            </BrokersProvider>
+            <EndorsementsProvider>
+              <ProfileViewsProvider>
+                <SuggestionsProvider>
+                  <BrokersProvider>
+                    <PostsProvider>
+                      <MessagesProvider>
+                        <AppRoutes />
+                      </MessagesProvider>
+                    </PostsProvider>
+                  </BrokersProvider>
+                </SuggestionsProvider>
+              </ProfileViewsProvider>
+            </EndorsementsProvider>
           </FollowsProvider>
         </BlockedProvider>
       </AuthProvider>

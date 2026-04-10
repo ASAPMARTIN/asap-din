@@ -1,16 +1,17 @@
-// Mention format in stored text: [broker_id:display_name]
-// Example: "Cuidado con [b-006:Fast Lane Brokers] MC-765432"
-// This returns an array of segments: { type: 'text'|'mention', content, brokerId, brokerName }
+// Mention format in stored text: [broker_id:display_name] for brokers
+// User mention format: {u-XXX:Display Name}
+// This returns an array of segments: { type: 'text'|'mention'|'user_mention', content, brokerId, brokerName, userId, userName }
 
 export function parseMentions(text) {
   if (!text) return [{ type: 'text', content: '' }];
 
-  const mentionRegex = /\[([^:]+):([^\]]+)\]/g;
+  // Combined regex: broker mentions [b-xxx:name] and user mentions {u-xxx:name}
+  const combinedRegex = /\[([^:]+):([^\]]+)\]|\{(u-[^:]+):([^}]+)\}/g;
   const segments = [];
   let lastIndex = 0;
   let match;
 
-  while ((match = mentionRegex.exec(text)) !== null) {
+  while ((match = combinedRegex.exec(text)) !== null) {
     // Text before mention
     if (match.index > lastIndex) {
       segments.push({
@@ -19,12 +20,23 @@ export function parseMentions(text) {
       });
     }
 
-    segments.push({
-      type: 'mention',
-      brokerId: match[1],
-      brokerName: match[2],
-      content: `@${match[2]}`,
-    });
+    if (match[1] !== undefined) {
+      // Broker mention [id:name]
+      segments.push({
+        type: 'mention',
+        brokerId: match[1],
+        brokerName: match[2],
+        content: `@${match[2]}`,
+      });
+    } else {
+      // User mention {u-xxx:name}
+      segments.push({
+        type: 'user_mention',
+        userId: match[3],
+        userName: match[4],
+        content: `@${match[4]}`,
+      });
+    }
 
     lastIndex = match.index + match[0].length;
   }

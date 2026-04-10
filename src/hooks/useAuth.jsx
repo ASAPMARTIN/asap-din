@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(getCurrentUser());
   const [language, setLanguage] = useState('es');
   const [notifications, setNotifications] = useState({ pushEnabled: true, digestEnabled: false });
+  const [readReceipts, setReadReceipts] = useState(true);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
 
   const login = () => {
@@ -34,6 +35,7 @@ export function AuthProvider({ children }) {
     setNotifications(prev => ({ ...prev, ...updates }));
   };
 
+  const toggleReadReceipts = () => setReadReceipts(prev => !prev);
   const dismissOnboarding = () => setHasSeenOnboarding(true);
   const resetOnboarding = () => setHasSeenOnboarding(false);
 
@@ -43,12 +45,14 @@ export function AuthProvider({ children }) {
       currentUser,
       language,
       notifications,
+      readReceipts,
       hasSeenOnboarding,
       login,
       logout,
       updateProfile,
       toggleLanguage,
       updateNotifications,
+      toggleReadReceipts,
       dismissOnboarding,
       resetOnboarding,
     }}>

@@ -58,11 +58,22 @@ export default function ComposeScreen({ onClose, defaultThread = null, quotedPos
   const [pinned, setPinned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [image, setImage] = useState(null);
+  const [selectedFlair, setSelectedFlair] = useState(null);
   const fileInputRef = useRef(null);
+
+  const FLAIRS = [
+    { id: 'alerta', label: '🚨 Alerta', active: 'bg-red-600 text-white', inactive: 'border border-red-300 text-red-700' },
+    { id: 'pregunta', label: '❓ Pregunta', active: 'bg-blue-600 text-white', inactive: 'border border-blue-300 text-blue-700' },
+    { id: 'tarifa', label: '💰 Tarifa', active: 'bg-emerald-600 text-white', inactive: 'border border-emerald-300 text-emerald-700' },
+    { id: 'consejo', label: '💡 Consejo', active: 'bg-amber-500 text-white', inactive: 'border border-amber-300 text-amber-700' },
+  ];
 
   // Support quote repost from location state
   const quotedPostFromState = location?.state?.quotePost || null;
   const activeQuotedPost = quotedPost || quotedPostFromState;
+
+  // When poll is active, auto-select 'encuesta' flair
+  const effectiveFlair = pollOpen ? 'encuesta' : selectedFlair;
 
   // Poll builder
   const [pollOpen, setPollOpen] = useState(false);
@@ -93,7 +104,8 @@ export default function ComposeScreen({ onClose, defaultThread = null, quotedPos
         pinned,
         pollData,
         image || null,
-        activeQuotedPost ? activeQuotedPost.id : null
+        activeQuotedPost ? activeQuotedPost.id : null,
+        effectiveFlair
       );
       onClose();
     }, 400);
@@ -160,6 +172,32 @@ export default function ComposeScreen({ onClose, defaultThread = null, quotedPos
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* Flair selector */}
+        <div className="px-4 pt-3 pb-3 border-b border-gray-100">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+            {language === 'es' ? 'Etiqueta:' : 'Tag:'}
+          </p>
+          <div className={`flex gap-2 flex-wrap ${pollOpen ? 'opacity-50 pointer-events-none' : ''}`}>
+            {pollOpen ? (
+              <span className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-purple-600 text-white font-semibold">
+                📊 {language === 'es' ? 'Encuesta' : 'Poll'}
+              </span>
+            ) : (
+              FLAIRS.map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setSelectedFlair(selectedFlair === f.id ? null : f.id)}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all btn-press ${
+                    selectedFlair === f.id ? f.active : f.inactive
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))
+            )}
           </div>
         </div>
 

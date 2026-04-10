@@ -23,6 +23,7 @@ export const mockPosts = [
     mentions: ['b-006'],
     is_repost: true,
     repost_author_id: 'u-007',
+    flair: 'alerta',
   },
   {
     id: 'p-repost-02',
@@ -37,6 +38,7 @@ export const mockPosts = [
     mentions: [],
     is_repost: true,
     repost_author_id: 'u-002',
+    flair: 'consejo',
   },
 
   {
@@ -52,6 +54,7 @@ export const mockPosts = [
     mentions: ['b-006'],
     reactions: { fire: 4, confirmed: 12, warning: 2, frustrated: 1, user_reaction: null },
     image_url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231d4ed8'/%3E%3Ctext x='200' y='110' text-anchor='middle' font-size='22' fill='white' font-family='sans-serif'%3E%F0%9F%93%B7 Rate Confirmation%3C/text%3E%3C/svg%3E",
+    flair: 'alerta',
   },
   {
     id: 'p-002',
@@ -64,6 +67,7 @@ export const mockPosts = [
     created_at: daysAgo(3),
     mentions: ['b-008'],
     reactions: { fire: 7, confirmed: 21, warning: 5, frustrated: 3, user_reaction: null },
+    flair: 'alerta',
   },
   {
     id: 'p-003',
@@ -87,6 +91,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(1),
     mentions: ['b-013'],
+    flair: 'pregunta',
   },
   {
     id: 'p-005',
@@ -98,6 +103,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(5),
     mentions: ['b-019'],
+    flair: 'alerta',
   },
   {
     id: 'p-006',
@@ -109,6 +115,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(6),
     mentions: ['b-004'],
+    flair: 'consejo',
   },
   {
     id: 'p-007',
@@ -121,6 +128,7 @@ export const mockPosts = [
     created_at: daysAgo(7),
     mentions: ['b-042'],
     reactions: { fire: 15, confirmed: 30, warning: 8, frustrated: 12, user_reaction: null },
+    flair: 'alerta',
   },
   {
     id: 'p-008',
@@ -143,6 +151,7 @@ export const mockPosts = [
     is_pinned_to_profile: true,
     created_at: daysAgo(9),
     mentions: ['b-026'],
+    flair: 'consejo',
   },
   {
     id: 'p-010',
@@ -166,6 +175,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: hoursAgo(18),
     mentions: ['b-007'],
+    flair: 'pregunta',
   },
   {
     id: 'p-012',
@@ -177,6 +187,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: hoursAgo(12),
     mentions: ['b-023'],
+    flair: 'alerta',
   },
   {
     id: 'p-013',
@@ -199,6 +210,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: hoursAgo(6),
     mentions: ['b-006'],
+    flair: 'alerta',
   },
   {
     id: 'p-015',
@@ -210,6 +222,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: minsAgo(45),
     mentions: [],
+    flair: 'pregunta',
   },
   {
     id: 'p-016',
@@ -221,6 +234,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(13),
     mentions: ['b-052'],
+    flair: 'alerta',
   },
   // TARIFAS Y RUTAS
   {
@@ -233,6 +247,7 @@ export const mockPosts = [
     is_pinned_to_profile: true,
     created_at: hoursAgo(8),
     mentions: [],
+    flair: 'tarifa',
   },
   {
     id: 'p-018',
@@ -244,6 +259,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(1),
     mentions: [],
+    flair: 'tarifa',
   },
   {
     id: 'p-019',
@@ -257,6 +273,7 @@ export const mockPosts = [
     mentions: ['b-018'],
     reactions: { fire: 22, confirmed: 35, warning: 0, frustrated: 0, user_reaction: null },
     image_url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23059669'/%3E%3Ctext x='200' y='110' text-anchor='middle' font-size='22' fill='white' font-family='sans-serif'%3E%F0%9F%93%B7 Truck Stop I-95%3C/text%3E%3C/svg%3E",
+    flair: 'tarifa',
   },
   {
     id: 'p-020',
@@ -268,6 +285,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(3),
     mentions: ['b-014'],
+    flair: 'tarifa',
   },
   {
     id: 'p-021',
@@ -279,6 +297,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(4),
     mentions: [],
+    flair: 'consejo',
   },
   {
     id: 'p-022',
@@ -290,6 +309,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(5),
     mentions: ['b-030'],
+    flair: 'pregunta',
   },
   {
     id: 'p-023',
@@ -314,6 +334,7 @@ export const mockPosts = [
     mentions: [],
     reactions: { fire: 3, confirmed: 14, warning: 1, frustrated: 2, user_reaction: null },
     image_url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23dc2626'/%3E%3Ctext x='200' y='110' text-anchor='middle' font-size='20' fill='white' font-family='sans-serif'%3E%F0%9F%93%B7 Mi Freightliner 2022%3C/text%3E%3C/svg%3E",
+    flair: 'pregunta',
   },
   {
     id: 'p-025',
@@ -325,6 +346,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: hoursAgo(14),
     mentions: [],
+    flair: 'consejo',
   },
   {
     id: 'p-026',
@@ -336,6 +358,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(8),
     mentions: [],
+    flair: 'consejo',
   },
   {
     id: 'p-027',
@@ -479,6 +502,7 @@ export const pollPosts = [
     is_pinned_to_profile: false,
     created_at: hoursAgo(18),
     mentions: [],
+    flair: 'encuesta',
     poll_question: '¿Cuánto tardan en pagar los brokers que usas?',
     poll_options: [
       { id: 'po-01-a', text: 'Menos de 15 días', vote_count: 4 },
@@ -499,6 +523,7 @@ export const pollPosts = [
     is_pinned_to_profile: false,
     created_at: hoursAgo(6),
     mentions: [],
+    flair: 'encuesta',
     poll_question: '¿Cuánto están pagando Miami-Atlanta esta semana? (dry van, $/milla)',
     poll_options: [
       { id: 'po-02-a', text: '$1.60 – $1.80', vote_count: 2 },
@@ -519,6 +544,7 @@ export const pollPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(3),
     mentions: [],
+    flair: 'encuesta',
     poll_question: '¿Cuál es tu ruta más rentable saliendo de Miami?',
     poll_options: [
       { id: 'po-03-a', text: 'Miami – Atlanta', vote_count: 11 },
@@ -539,6 +565,7 @@ export const pollPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(6),
     mentions: [],
+    flair: 'encuesta',
     poll_question: '¿Has sido víctima de doble brokerage este año?',
     poll_options: [
       { id: 'po-04-a', text: 'Sí, una vez', vote_count: 7 },
@@ -559,6 +586,7 @@ export const pollPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(1),
     mentions: [],
+    flair: 'encuesta',
     poll_question: '¿Cuánto pagas de prima de seguro de cargo al año?',
     poll_options: [
       { id: 'po-05-a', text: 'Menos de $3,000', vote_count: 5 },

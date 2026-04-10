@@ -48,6 +48,7 @@ export const mockConversations = [
         type: 'text',
         text: 'Gracias por el aviso. Yo casi les acepto una carga ayer.',
         created_at: daysAgo(2),
+        status: 'read',
       },
       {
         id: 'msg-003',
@@ -57,11 +58,19 @@ export const mockConversations = [
         created_at: daysAgo(2),
       },
       {
+        id: 'msg-shared-1',
+        sender_id: 'u-007',
+        type: 'shared_post',
+        shared_post_id: 'p-003',
+        created_at: daysAgo(1),
+      },
+      {
         id: 'msg-004',
         sender_id: 'u-001',
         type: 'text',
         text: 'Ya los busqué. Tienen autoridad activa pero mucho negativo. Los evito.',
-        created_at: daysAgo(2),
+        created_at: daysAgo(1),
+        status: 'read',
       },
       {
         id: 'msg-005',
@@ -211,6 +220,7 @@ export const mockConversations = [
         type: 'text',
         text: 'Bien, pero el broker tardó 38 días en pagar. Por eso no repito con ellos.',
         created_at: daysAgo(3),
+        status: 'read',
       },
       {
         id: 'msg-v1',
@@ -227,6 +237,7 @@ export const mockConversations = [
         type: 'text',
         text: 'Exacto. Yo siempre digo lo mismo, hay que conocerlos bien primero.',
         created_at: hoursAgo(10),
+        status: 'read',
       },
       {
         id: 'msg-v2',
@@ -236,6 +247,7 @@ export const mockConversations = [
         waveform: WF_14S,
         audio_url: null,
         created_at: hoursAgo(9),
+        status: 'delivered',
       },
       {
         id: 'msg-043',
@@ -246,6 +258,43 @@ export const mockConversations = [
       },
     ],
     unread_count: 0,
+  },
+];
+
+// Group conversations
+export const mockGroups = [
+  {
+    id: 'grp-001',
+    name: 'Dry Van Miami-Atlanta',
+    emoji: '🚛',
+    members: ['u-001', 'u-002', 'u-005', 'u-009', 'u-012'],
+    created_by: 'u-002',
+    last_message_at: '2026-04-09T18:00:00Z',
+    messages: [
+      { id: 'gm-001', sender_id: 'u-002', type: 'text', body: 'Buenas! Alguien corriendo Miami-Atlanta esta semana?', created_at: '2026-04-09T10:00:00Z' },
+      { id: 'gm-002', sender_id: 'u-005', type: 'text', body: 'Yo! Las tarifas bajaron a $2.10/mi. Están bien bajas', created_at: '2026-04-09T10:05:00Z' },
+      { id: 'gm-003', sender_id: 'u-001', type: 'text', body: 'Echo vi ayer $2.35 en DAT, busquen bien', created_at: '2026-04-09T10:12:00Z', status: 'read' },
+      { id: 'gm-004', sender_id: 'u-009', type: 'text', body: 'Cuidado con Horizon Freight en Atlanta, me dejaron esperando 6 horas', created_at: '2026-04-09T11:00:00Z' },
+      { id: 'gm-005', sender_id: 'u-012', type: 'text', body: 'Gracias por el aviso! Los tengo anotados', created_at: '2026-04-09T11:15:00Z' },
+      { id: 'gm-006', sender_id: 'u-002', type: 'text', body: 'Alguien sabe si I-75 está libre hoy? Vi algo de construcción', created_at: '2026-04-09T14:00:00Z' },
+      { id: 'gm-007', sender_id: 'u-005', type: 'text', body: 'Sí hay obra en el kilómetro 120, evítenlo o lleguen temprano', created_at: '2026-04-09T14:22:00Z' },
+      { id: 'gm-008', sender_id: 'u-001', type: 'text', body: 'Gracias a todos, buen viaje esta semana! 🙏', created_at: '2026-04-09T18:00:00Z', status: 'delivered' },
+    ],
+  },
+  {
+    id: 'grp-002',
+    name: 'Reefer Costa Este',
+    emoji: '❄️',
+    members: ['u-001', 'u-003', 'u-007', 'u-014'],
+    created_by: 'u-003',
+    last_message_at: '2026-04-10T08:00:00Z',
+    messages: [
+      { id: 'gr2-001', sender_id: 'u-003', type: 'text', body: 'Grupo para reefer en la costa este 🥶', created_at: '2026-04-08T09:00:00Z' },
+      { id: 'gr2-002', sender_id: 'u-007', type: 'text', body: 'Buena idea. Alguien en Boston esta semana?', created_at: '2026-04-08T09:30:00Z' },
+      { id: 'gr2-003', sender_id: 'u-001', type: 'text', body: 'Yo voy para NY mañana con carga de produce', created_at: '2026-04-08T10:00:00Z', status: 'read' },
+      { id: 'gr2-004', sender_id: 'u-014', type: 'text', body: 'Revisen la temperatura a tiempo, tuve un problema con un cargador en Philly', created_at: '2026-04-09T07:00:00Z' },
+      { id: 'gr2-005', sender_id: 'u-003', type: 'text', body: 'Importante! Siempre documenten temp al recoger y entregar 📷', created_at: '2026-04-10T08:00:00Z' },
+    ],
   },
 ];
 
@@ -274,3 +323,8 @@ export const getTotalUnreadCount = (userId) =>
 // Helper: get other participant in a conversation
 export const getOtherUserId = (conversation, myUserId) =>
   conversation.participant_ids.find(id => id !== myUserId);
+
+// Helper: get groups for a user
+export const getGroupsForUser = (userId) =>
+  mockGroups.filter(g => g.members.includes(userId))
+    .sort((a, b) => new Date(b.last_message_at) - new Date(a.last_message_at));

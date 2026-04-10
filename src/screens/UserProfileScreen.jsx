@@ -1,22 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Settings, Pin, MessageCircle, UserPlus, UserCheck, MoreHorizontal } from 'lucide-react';
+import { Settings, Pin, MessageCircle, UserPlus, UserCheck, MoreHorizontal, QrCode } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import PostCard from '../components/PostCard';
 import VerifiedBadge from '../components/VerifiedBadge';
 import BottomSheet from '../components/BottomSheet';
+import ProfileQR from '../components/ProfileQR';
 import { getAvatarColor, getInitials } from '../utils/avatarColor';
 import { formatDate } from '../utils/timeAgo';
-import { getUserById } from '../data/mockUsers';
+import { getUserById, mockUsers, CURRENT_USER_ID } from '../data/mockUsers';
 import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';
 import { useFollows } from '../hooks/useFollows';
 import { useBlocked } from '../hooks/useBlocked';
+import { useEndorsements, ENDORSEMENT_TYPES } from '../hooks/useEndorsements';
+import { useProfileViews } from '../hooks/useProfileViews';
 
 const EQUIPMENT_LABELS = {
   dry_van: '🚛 Dry Van', flatbed: '🏗️ Flatbed', reefer: '❄️ Reefer',
   tanker: '🛢️ Tanker', step_deck: '⬇️ Step Deck', other: '🚚 Otro',
+};
+
+const EQUIPMENT_LABELS_SHORT = {
+  dry_van: 'Dry Van', flatbed: 'Flatbed', reefer: 'Reefer',
+  tanker: 'Tanker', step_deck: 'Step Deck', other: 'Otro',
 };
 
 function InviteSection({ user, lang }) {
@@ -88,6 +96,36 @@ function InviteSection({ user, lang }) {
   );
 }
 
+function EndorsementPills({ userId, language }) {
+  const { getEndorsements, hasEndorsed } = useEndorsements();
+  const counts = getEndorsements(userId);
+
+  const pills = Object.entries(ENDORSEMENT_TYPES)
+    .filter(([type]) => counts[type] > 0)
+    .map(([type, label]) => ({ type, label, count: counts[type] }));
+
+  if (pills.length === 0) return null;
+
+  return (
+    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+      {pills.map(({ type, label, count }) => {
+        const endorsed = hasEndorsed(userId, type);
+        return (
+          <span
+            key={type}
+            className={`flex-shrink-0 flex items-center gap-1 rounded-full bg-gray-100 text-sm px-3 py-1 ${
+              endorsed ? 'ring-2 ring-[#0F1A2E]' : ''
+            }`}
+          >
+            <span className="text-gray-700 text-sm">{label}</span>
+            <span className="text-xs font-bold text-gray-500">× {count}</span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function UserProfileScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -95,13 +133,25 @@ export default function UserProfileScreen() {
   const { getPostsByUser, getPinnedPostsByUser, getSavedPosts } = usePosts();
   const { isFollowing, follow, unfollow, getFollowingCount, getFollowersCount } = useFollows();
   const { blockUser } = useBlocked();
+  const { endorse, unendorse, hasEndorsed, getEndorsements } = useEndorsements();
+  const { recordView, getViewCount } = useProfileViews();
   const [activeTab, setActiveTab] = useState('destacados');
   const [unfollowModal, setUnfollowModal] = useState(false);
   const [blockSheetOpen, setBlockSheetOpen] = useState(false);
   const [blockToast, setBlockToast] = useState(false);
+  const [endorseSheetOpen, setEndorseSheetOpen] = useState(false);
+  const [endorseToast, setEndorseToast] = useState('');
+  const [qrOpen, setQrOpen] = useState(false);
 
   const user = id ? getUserById(id) : currentUser;
   const isOwnProfile = !id || id === currentUser?.id;
+
+  // Record profile view
+  useEffect(() => {
+    if (user && !isOwnProfile) {
+      recordView(user.id);
+    }
+  }, [user?.id, isOwnProfile]);
 
   if (!user) {
     return (
@@ -129,7 +179,6 @@ export default function UserProfileScreen() {
   };
 
   const following = isFollowing(user.id);
-  // For own profile: show how many we follow + how many follow us
   const followingCount = isOwnProfile ? getFollowingCount() : null;
   const followersCount = getFollowersCount(user.id);
 
@@ -140,6 +189,32 @@ export default function UserProfileScreen() {
       follow(user.id);
     }
   };
+
+  const handleEndorseType = (type) => {
+    const already = hasEndorsed(user.id, type);
+    if (already) {
+      unendorse(user.id, type);
+      setEndorseSheetOpen(false);
+      setEndorseToast(language === 'es' ? 'Recomendación retirada' : 'Endorsement removed');
+    } else {
+      endorse(user.id, type);
+      setEndorseSheetOpen(false);
+      setEndorseToast(language === 'es' ? 'Recomendación agregada ✓' : 'Endorsement added ✓');
+    }
+    setTimeout(() => setEndorseToast(''), 2000);
+  };
+
+  // Similar operators for own profile (top 3 by same equipment type)
+  const similarOperators = isOwnProfile
+    ? mockUsers
+        .filter(u =>
+          u.id !== CURRENT_USER_ID &&
+          u.equipment_type === user.equipment_type
+        )
+        .slice(0, 3)
+    : [];
+
+  const profileViewCount = getViewCount(user.id);
 
   return (
     <div className="flex flex-col min-h-dvh" style={{ backgroundColor: '#FAFAF8' }}>
@@ -185,6 +260,14 @@ export default function UserProfileScreen() {
                       : <><UserPlus size={15} /><span>{language === 'es' ? 'Seguir' : 'Follow'}</span></>}
                   </button>
 
+                  {/* QR button */}
+                  <button
+                    onClick={() => setQrOpen(true)}
+                    className="p-2 text-gray-400 hover:text-gray-600 btn-press"
+                  >
+                    <QrCode size={20} />
+                  </button>
+
                   {/* More options */}
                   <button
                     onClick={() => setBlockSheetOpen(true)}
@@ -195,9 +278,14 @@ export default function UserProfileScreen() {
                 </>
               )}
               {isOwnProfile && (
-                <button onClick={() => navigate('/settings')} className="p-2 text-gray-400">
-                  <Settings size={22} />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setQrOpen(true)} className="p-2 text-gray-400 btn-press">
+                    <QrCode size={22} />
+                  </button>
+                  <button onClick={() => navigate('/settings')} className="p-2 text-gray-400">
+                    <Settings size={22} />
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -230,6 +318,11 @@ export default function UserProfileScreen() {
             <p className="text-base font-medium text-gray-700 mb-4 leading-relaxed">{user.bio}</p>
           )}
 
+          {/* Endorsement pills — below bio */}
+          <div className="mb-4">
+            <EndorsementPills userId={user.id} language={language} />
+          </div>
+
           {/* Stats — following/followers + accomplishments */}
           <div className="flex gap-5 py-3 border-t border-gray-100 flex-wrap">
             {isOwnProfile && (
@@ -256,8 +349,55 @@ export default function UserProfileScreen() {
             </div>
           </div>
 
+          {/* Profile view count — own profile */}
+          {isOwnProfile && profileViewCount > 0 && (
+            <div className="bg-blue-50 rounded-xl px-4 py-2.5 mx-0 mb-3 mt-1">
+              <p className="text-sm text-[#0F1A2E] font-semibold">
+                👁 {profileViewCount} {language === 'es' ? 'personas vieron tu perfil esta semana' : 'people viewed your profile this week'}
+              </p>
+            </div>
+          )}
+
+          {/* Endorse button — other profiles only */}
+          {!isOwnProfile && (
+            <button
+              onClick={() => setEndorseSheetOpen(true)}
+              className="w-full py-2.5 mt-2 border border-[#0F1A2E] text-[#0F1A2E] text-sm font-bold rounded-2xl btn-press hover:bg-[#0F1A2E] hover:text-white transition-colors"
+            >
+              ⭐ {language === 'es' ? 'Recomendar' : 'Endorse'}
+            </button>
+          )}
+
           {/* VIP invite section (own profile) */}
           {isOwnProfile && <InviteSection user={user} lang={language} />}
+
+          {/* Similar operators — own profile */}
+          {isOwnProfile && similarOperators.length > 0 && (
+            <div className="mt-4">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+                {language === 'es' ? 'Operadores similares' : 'Similar operators'}
+              </p>
+              <div className="flex gap-3 overflow-x-auto no-scrollbar">
+                {similarOperators.map(op => (
+                  <button
+                    key={op.id}
+                    onClick={() => navigate(`/profile/${op.id}`)}
+                    className="flex flex-col items-center gap-1.5 flex-shrink-0 btn-press"
+                  >
+                    <div
+                      className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                      style={{ backgroundColor: op.avatar_color }}
+                    >
+                      {op.avatar_initials}
+                    </div>
+                    <span className="text-xs text-gray-600 font-medium w-12 text-center truncate">
+                      {op.display_name.split(' ')[0]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
@@ -332,12 +472,57 @@ export default function UserProfileScreen() {
 
       {isOwnProfile && <BottomNav />}
 
+      {/* Endorse toast */}
+      {endorseToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#0F1A2E] text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-lg fade-in pointer-events-none">
+          {endorseToast}
+        </div>
+      )}
+
       {/* Block toast */}
       {blockToast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#0F1A2E] text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-lg fade-in pointer-events-none">
           {language === 'es' ? '✓ Usuario bloqueado' : '✓ User blocked'}
         </div>
       )}
+
+      {/* Endorse bottom sheet */}
+      <BottomSheet isOpen={endorseSheetOpen} onClose={() => setEndorseSheetOpen(false)}>
+        <div className="px-4 pb-6 pt-2">
+          <h3 className="text-base font-bold text-gray-900 mb-1 text-center">
+            {language === 'es' ? `¿En qué destaca ${user.display_name.split(' ')[0]}?` : `How does ${user.display_name.split(' ')[0]} stand out?`}
+          </h3>
+          <p className="text-xs text-gray-400 mb-4 text-center">
+            {language === 'es' ? 'Toca para agregar o retirar una recomendación' : 'Tap to add or remove an endorsement'}
+          </p>
+          <div className="space-y-2">
+            {Object.entries(ENDORSEMENT_TYPES).map(([type, label]) => {
+              const endorsed = hasEndorsed(user.id, type);
+              const count = getEndorsements(user.id)[type] || 0;
+              const displayLabel = type === 'expert'
+                ? `🔧 Experto en ${EQUIPMENT_LABELS_SHORT[user.equipment_type] || user.equipment_type}`
+                : label;
+              return (
+                <button
+                  key={type}
+                  onClick={() => handleEndorseType(type)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-medium transition-colors btn-press ${
+                    endorsed
+                      ? 'bg-[#0F1A2E] text-white'
+                      : 'bg-gray-50 text-gray-800 hover:bg-gray-100'
+                  }`}
+                >
+                  <span>{displayLabel}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs ${endorsed ? 'text-white/60' : 'text-gray-400'}`}>× {count}</span>
+                    {endorsed && <span>✓</span>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </BottomSheet>
 
       {/* Block confirmation sheet */}
       <BottomSheet isOpen={blockSheetOpen} onClose={() => setBlockSheetOpen(false)}>
@@ -396,6 +581,16 @@ export default function UserProfileScreen() {
           </div>
         </div>
       )}
+
+      {/* QR overlay */}
+      <ProfileQR
+        isOpen={qrOpen}
+        onClose={() => setQrOpen(false)}
+        userId={user.id}
+        userName={user.display_name}
+        avatarColor={avatarColor}
+        avatarInitials={user.avatar_initials || getInitials(user.display_name)}
+      />
     </div>
   );
 }
