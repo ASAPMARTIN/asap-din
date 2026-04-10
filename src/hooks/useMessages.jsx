@@ -37,6 +37,36 @@ export function MessagesProvider({ children }) {
     return newConv;
   }, [conversations]);
 
+  const sendVoiceMessage = useCallback((otherUserId, _blob, duration, waveform, audioUrl) => {
+    const newMsg = {
+      id: `msg-voice-${Date.now()}`,
+      sender_id: CURRENT_USER_ID,
+      type: 'voice',
+      duration,
+      waveform,
+      audio_url: audioUrl || null,
+      created_at: new Date().toISOString(),
+    };
+
+    const convId = conversations.find(c =>
+      c.participant_ids.includes(CURRENT_USER_ID) &&
+      c.participant_ids.includes(otherUserId)
+    )?.id;
+
+    if (convId) {
+      setConversations(prev => prev.map(c =>
+        c.id === convId ? { ...c, messages: [...c.messages, newMsg] } : c
+      ));
+    } else {
+      setConversations(prev => [...prev, {
+        id: `conv-new-${Date.now()}`,
+        participant_ids: [CURRENT_USER_ID, otherUserId],
+        messages: [newMsg],
+        unread_count: 0,
+      }]);
+    }
+  }, [conversations]);
+
   const sendMessage = useCallback((otherUserId, text) => {
     const convId = conversations.find(c =>
       c.participant_ids.includes(CURRENT_USER_ID) &&
@@ -98,6 +128,7 @@ export function MessagesProvider({ children }) {
       getConversationsForUser,
       getOrCreateConversation,
       sendMessage,
+      sendVoiceMessage,
       markConversationRead,
       getTotalUnreadCount,
       getMessages,
