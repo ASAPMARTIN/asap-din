@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ThumbsUp, MessageCircle, Share2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Share2, ChevronDown, ChevronUp, Repeat2 } from 'lucide-react';
 import VerifiedBadge from './VerifiedBadge';
 import BrokerChip from './BrokerChip';
 import ShareSheet from './ShareSheet';
@@ -52,18 +52,23 @@ function MentionText({ body, truncated = false }) {
 
 export default function PostCard({ post, onClick }) {
   const navigate = useNavigate();
-  const { upvotePost, hasUpvotedPost } = usePosts();
+  const { upvotePost, hasUpvotedPost, repostPost, hasReposted } = usePosts();
   const { language } = useAuth();
   const { isFollowing } = useFollows();
   const [shareOpen, setShareOpen] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
 
   const author = getUserById(post.author_id);
   if (!author) return null;
 
   const avatarColor = author.avatar_color || getAvatarColor(author.display_name);
   const isUpvoted = hasUpvotedPost(post.id);
+  const isReposted = hasReposted(post.id);
   const threadBorder = THREAD_COLORS[post.thread] || 'border-l-gray-200';
   const following = isFollowing(author.id);
+
+  // For repost header
+  const repostAuthor = post.is_repost ? getUserById(post.repost_author_id) : null;
 
   const handleCardClick = () => {
     if (onClick) onClick(post);
@@ -80,12 +85,37 @@ export default function PostCard({ post, onClick }) {
     setShareOpen(true);
   };
 
+  const handleRepost = (e) => {
+    e.stopPropagation();
+    if (isReposted) return;
+    repostPost(post.id);
+    setToastVisible(true);
+    setTimeout(() => setToastVisible(false), 2000);
+  };
+
   return (
     <>
+      {/* Toast notification */}
+      {toastVisible && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#0F1A2E] text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-lg fade-in pointer-events-none">
+          {language === 'es' ? '✓ Reposteado' : '✓ Reposted'}
+        </div>
+      )}
+
       <div
-        className={`bg-white border-b border-gray-100 px-4 pt-5 pb-4 card-tap cursor-pointer border-l-4 ${threadBorder} fade-in`}
+        className={`bg-white border-b border-gray-100 px-4 pb-4 card-tap cursor-pointer border-l-4 ${threadBorder} fade-in ${post.is_repost ? 'pt-2' : 'pt-5'}`}
         onClick={handleCardClick}
       >
+        {/* Repost header */}
+        {post.is_repost && repostAuthor && (
+          <div className="flex items-center gap-1.5 mb-3 text-gray-400">
+            <Repeat2 size={13} />
+            <span className="text-xs font-semibold">
+              {repostAuthor.display_name} {language === 'es' ? 'reposteó' : 'reposted'}
+            </span>
+          </div>
+        )}
+
         {/* Author row */}
         <div className="flex items-center gap-3 mb-3">
           <div
@@ -145,6 +175,18 @@ export default function PostCard({ post, onClick }) {
           >
             <MessageCircle size={16} />
             <span>{post.reply_count}</span>
+          </button>
+
+          <button
+            onClick={handleRepost}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all btn-press ${
+              isReposted
+                ? 'text-emerald-600 bg-emerald-50'
+                : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+            }`}
+          >
+            <Repeat2 size={16} />
+            {(post.repost_count || 0) > 0 && <span>{post.repost_count}</span>}
           </button>
 
           <button

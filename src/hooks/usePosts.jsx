@@ -8,6 +8,7 @@ export function PostsProvider({ children }) {
   const [posts, setPosts] = useState([...mockPosts, ...pollPosts]);
   const [replies, setReplies] = useState(mockReplies);
   const [userUpvotes, setUserUpvotes] = useState(new Set());
+  const [userReposts, setUserReposts] = useState(new Set());
 
   const getPost = useCallback((id) => {
     return posts.find(p => p.id === id) || null;
@@ -112,6 +113,31 @@ export function PostsProvider({ children }) {
     }));
   }, []);
 
+  const hasReposted = useCallback((postId) => userReposts.has(postId), [userReposts]);
+
+  const repostPost = useCallback((postId) => {
+    if (userReposts.has(postId)) return; // one repost per post
+    const original = posts.find(p => p.id === postId);
+    if (!original) return;
+
+    // Increment repost_count on original
+    setPosts(prev => prev.map(p =>
+      p.id === postId ? { ...p, repost_count: (p.repost_count || 0) + 1 } : p
+    ));
+
+    // Create a new repost entry at top of feed
+    const repostEntry = {
+      ...original,
+      id: `p-repost-${Date.now()}`,
+      is_repost: true,
+      repost_author_id: CURRENT_USER_ID,
+      created_at: new Date().toISOString(),
+      is_pinned_to_profile: false,
+    };
+    setPosts(prev => [repostEntry, ...prev]);
+    setUserReposts(prev => new Set([...prev, postId]));
+  }, [posts, userReposts]);
+
   const createPostWithPoll = useCallback((thread, body, isPinned = false, pollData = null) => {
     const newPost = {
       id: `p-new-${Date.now()}`,
@@ -152,6 +178,8 @@ export function PostsProvider({ children }) {
       togglePin,
       votePoll,
       createPostWithPoll,
+      repostPost,
+      hasReposted,
     }}>
       {children}
     </PostsContext.Provider>

@@ -8,6 +8,37 @@ const daysAgo = (d) => new Date(now - d * 86400000).toISOString();
 
 export const mockPosts = [
   // ALERTAS DE BROKERS
+
+  // Example reposts (show with "reposteó" header in feed)
+  {
+    id: 'p-repost-01',
+    author_id: 'u-003',
+    thread: 'alertas_brokers',
+    body: 'ALERTA: [b-006:Fast Lane Brokers] MC-765432 son unos ladrones. Me ofrecieron Miami-Atlanta a $2.10 la milla, cuando llegué al destino la confirmación decía $1.65. Cuando llamé a reclamar me dijeron que "hubo un error en el sistema". Llevamos 47 días esperando el pago. @Reinaldo ya te dije que no trabajaras con ellos.',
+    upvote_count: 47,
+    reply_count: 12,
+    repost_count: 8,
+    is_pinned_to_profile: false,
+    created_at: minsAgo(20),
+    mentions: ['b-006'],
+    is_repost: true,
+    repost_author_id: 'u-007',
+  },
+  {
+    id: 'p-repost-02',
+    author_id: 'u-010',
+    thread: 'tarifas_rutas',
+    body: 'Consejo de negociación: NUNCA digas el número primero. Pregunta siempre "¿Cuánto están pagando?" antes de dar tu tarifa. Si ellos preguntan primero, di "depende de la distancia y el tipo de carga, ¿cuánto tienen presupuestado?" La información es poder en este negocio.',
+    upvote_count: 82,
+    reply_count: 14,
+    repost_count: 12,
+    is_pinned_to_profile: false,
+    created_at: hoursAgo(1),
+    mentions: [],
+    is_repost: true,
+    repost_author_id: 'u-002',
+  },
+
   {
     id: 'p-001',
     author_id: 'u-003',
@@ -15,6 +46,7 @@ export const mockPosts = [
     body: 'ALERTA: [b-006:Fast Lane Brokers] MC-765432 son unos ladrones. Me ofrecieron Miami-Atlanta a $2.10 la milla, cuando llegué al destino la confirmación decía $1.65. Cuando llamé a reclamar me dijeron que "hubo un error en el sistema". Llevamos 47 días esperando el pago. @Reinaldo ya te dije que no trabajaras con ellos.',
     upvote_count: 47,
     reply_count: 12,
+    repost_count: 8,
     is_pinned_to_profile: true,
     created_at: daysAgo(2),
     mentions: ['b-006'],
@@ -476,6 +508,26 @@ export const pollPosts = [
       { id: 'po-04-d', text: 'No sé qué es', vote_count: 3 },
     ],
     poll_total_votes: 23,
+    poll_user_vote: null,
+  },
+  {
+    id: 'p-poll-05',
+    author_id: 'u-002',
+    thread: 'tarifas_rutas',
+    body: 'El tema del seguro siempre sale en conversaciones. ¿Cuánto pagan por cobertura de cargo?',
+    upvote_count: 29,
+    reply_count: 6,
+    is_pinned_to_profile: false,
+    created_at: daysAgo(1),
+    mentions: [],
+    poll_question: '¿Cuánto pagas de prima de seguro de cargo al año?',
+    poll_options: [
+      { id: 'po-05-a', text: 'Menos de $3,000', vote_count: 5 },
+      { id: 'po-05-b', text: '$3,000 – $5,000', vote_count: 8 },
+      { id: 'po-05-c', text: '$5,000 – $8,000', vote_count: 6 },
+      { id: 'po-05-d', text: 'Más de $8,000', vote_count: 3 },
+    ],
+    poll_total_votes: 22,
     poll_user_vote: null,
   },
 ];

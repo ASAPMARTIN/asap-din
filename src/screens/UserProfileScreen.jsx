@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Settings, Pin, MessageCircle } from 'lucide-react';
+import { Settings, Pin, MessageCircle, UserPlus, UserCheck } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import PostCard from '../components/PostCard';
@@ -93,6 +93,7 @@ export default function UserProfileScreen() {
   const { getPostsByUser, getPinnedPostsByUser } = usePosts();
   const { isFollowing, follow, unfollow, getFollowingCount, getFollowersCount } = useFollows();
   const [activeTab, setActiveTab] = useState('destacados');
+  const [unfollowModal, setUnfollowModal] = useState(false);
 
   const user = id ? getUserById(id) : currentUser;
   const isOwnProfile = !id || id === currentUser?.id;
@@ -121,12 +122,7 @@ export default function UserProfileScreen() {
 
   const handleFollowToggle = () => {
     if (following) {
-      const ok = window.confirm(
-        language === 'es'
-          ? `¿Dejar de seguir a ${user.display_name}?`
-          : `Unfollow ${user.display_name}?`
-      );
-      if (ok) unfollow(user.id);
+      setUnfollowModal(true);
     } else {
       follow(user.id);
     }
@@ -165,15 +161,15 @@ export default function UserProfileScreen() {
                   {/* Seguir / Siguiendo */}
                   <button
                     onClick={handleFollowToggle}
-                    className={`px-4 py-2 rounded-full text-sm font-bold btn-press transition-all ${
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold btn-press transition-all ${
                       following
                         ? 'bg-[#0F1A2E] text-white'
                         : 'border-2 border-[#0F1A2E] text-[#0F1A2E] bg-white'
                     }`}
                   >
                     {following
-                      ? (language === 'es' ? 'Siguiendo ✓' : 'Following ✓')
-                      : (language === 'es' ? 'Seguir' : 'Follow')}
+                      ? <><UserCheck size={15} /><span>{language === 'es' ? 'Siguiendo' : 'Following'}</span></>
+                      : <><UserPlus size={15} /><span>{language === 'es' ? 'Seguir' : 'Follow'}</span></>}
                   </button>
                 </>
               )}
@@ -292,6 +288,38 @@ export default function UserProfileScreen() {
       </div>
 
       {isOwnProfile && <BottomNav />}
+
+      {/* Unfollow confirmation modal */}
+      {unfollowModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setUnfollowModal(false)}>
+          <div className="bg-white w-full max-w-sm rounded-t-3xl p-6 pb-safe" onClick={e => e.stopPropagation()}>
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-3"
+              style={{ backgroundColor: user.avatar_color || '#4B5563' }}
+            >
+              {user.avatar_initials}
+            </div>
+            <h2 className="text-center font-bold text-gray-900 text-base mb-1">
+              {language === 'es' ? `¿Dejar de seguir a ${user.display_name}?` : `Unfollow ${user.display_name}?`}
+            </h2>
+            <p className="text-center text-sm text-gray-500 mb-6">
+              {language === 'es' ? 'Sus publicaciones ya no aparecerán primero en tu feed.' : 'Their posts will no longer appear first in your feed.'}
+            </p>
+            <button
+              onClick={() => { unfollow(user.id); setUnfollowModal(false); }}
+              className="w-full py-3 bg-red-500 text-white font-bold rounded-2xl mb-3 btn-press"
+            >
+              {language === 'es' ? 'Dejar de seguir' : 'Unfollow'}
+            </button>
+            <button
+              onClick={() => setUnfollowModal(false)}
+              className="w-full py-3 bg-gray-100 text-gray-700 font-semibold rounded-2xl btn-press"
+            >
+              {language === 'es' ? 'Cancelar' : 'Cancel'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

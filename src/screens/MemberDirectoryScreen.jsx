@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users } from 'lucide-react';
+import { Users, UserPlus, UserCheck } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import VerifiedBadge from '../components/VerifiedBadge';
@@ -27,6 +28,7 @@ export default function MemberDirectoryScreen() {
   const navigate = useNavigate();
   const { language } = useAuth();
   const { isFollowing, follow, unfollow } = useFollows();
+  const [unfollowTarget, setUnfollowTarget] = useState(null);
 
   const you = mockUsers.find(u => u.id === CURRENT_USER_ID);
   const others = mockUsers
@@ -116,25 +118,20 @@ export default function MemberDirectoryScreen() {
                       onClick={(e) => {
                         e.stopPropagation();
                         if (following) {
-                          const ok = window.confirm(
-                            language === 'es'
-                              ? `¿Dejar de seguir a ${user.display_name}?`
-                              : `Unfollow ${user.display_name}?`
-                          );
-                          if (ok) unfollow(user.id);
+                          setUnfollowTarget(user);
                         } else {
                           follow(user.id);
                         }
                       }}
-                      className={`text-xs font-bold px-3 py-1.5 rounded-full btn-press transition-all ${
+                      className={`flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full btn-press transition-all ${
                         following
                           ? 'bg-[#0F1A2E] text-white'
                           : 'border border-[#0F1A2E] text-[#0F1A2E]'
                       }`}
                     >
                       {following
-                        ? (language === 'es' ? 'Siguiendo' : 'Following')
-                        : (language === 'es' ? 'Seguir' : 'Follow')}
+                        ? <><UserCheck size={12} /><span>{language === 'es' ? 'Siguiendo' : 'Following'}</span></>
+                        : <><UserPlus size={12} /><span>{language === 'es' ? 'Seguir' : 'Follow'}</span></>}
                     </button>
                   ) : null}
                 </div>
@@ -147,6 +144,38 @@ export default function MemberDirectoryScreen() {
       </div>
 
       <BottomNav />
+
+      {/* Unfollow confirmation modal */}
+      {unfollowTarget && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setUnfollowTarget(null)}>
+          <div className="bg-white w-full max-w-sm rounded-t-3xl p-6 pb-safe" onClick={e => e.stopPropagation()}>
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-3"
+              style={{ backgroundColor: unfollowTarget.avatar_color || '#4B5563' }}
+            >
+              {unfollowTarget.avatar_initials}
+            </div>
+            <h2 className="text-center font-bold text-gray-900 text-base mb-1">
+              {language === 'es' ? `¿Dejar de seguir a ${unfollowTarget.display_name}?` : `Unfollow ${unfollowTarget.display_name}?`}
+            </h2>
+            <p className="text-center text-sm text-gray-500 mb-6">
+              {language === 'es' ? 'Sus publicaciones ya no aparecerán primero en tu feed.' : 'Their posts will no longer appear first in your feed.'}
+            </p>
+            <button
+              onClick={() => { unfollow(unfollowTarget.id); setUnfollowTarget(null); }}
+              className="w-full py-3 bg-red-500 text-white font-bold rounded-2xl mb-3 btn-press"
+            >
+              {language === 'es' ? 'Dejar de seguir' : 'Unfollow'}
+            </button>
+            <button
+              onClick={() => setUnfollowTarget(null)}
+              className="w-full py-3 bg-gray-100 text-gray-700 font-semibold rounded-2xl btn-press"
+            >
+              {language === 'es' ? 'Cancelar' : 'Cancel'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

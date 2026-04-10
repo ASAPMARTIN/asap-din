@@ -1,6 +1,6 @@
-// Current user (u-001) follows these 7 members by default
+// Current user (u-001) follows these 6 members by default
 export const INITIAL_FOLLOWING = new Set([
-  'u-002', 'u-003', 'u-005', 'u-007', 'u-010', 'u-013', 'u-016',
+  'u-002', 'u-003', 'u-005', 'u-007', 'u-009', 'u-012',
 ]);
 
 // Static mock follower counts per user

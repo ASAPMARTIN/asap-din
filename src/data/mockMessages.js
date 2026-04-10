@@ -115,6 +115,31 @@ export const mockConversations = [
     ],
     unread_count: 2, // 2 unread (last 2 messages from u-010)
   },
+  {
+    id: 'conv-004',
+    participant_ids: ['u-001', 'u-005'], // Roberto ↔ Jorge Luis Peña
+    messages: [
+      {
+        id: 'msg-030',
+        sender_id: 'u-005',
+        text: 'Roberto, ¿tienes referencias de algún broker bueno para rutas de tanker en Florida?',
+        created_at: daysAgo(1),
+      },
+      {
+        id: 'msg-031',
+        sender_id: 'u-001',
+        text: 'Sí, mira a Quality Carriers y a Trimac. Los dos pagan bien y son puntuales.',
+        created_at: daysAgo(1),
+      },
+      {
+        id: 'msg-032',
+        sender_id: 'u-005',
+        text: 'Perfecto. ¿Tienes el contacto de alguien en Quality?',
+        created_at: minsAgo(30),
+      },
+    ],
+    unread_count: 1,
+  },
 ];
 
 // Helper: get all conversations for a given user, sorted by most recent message
