@@ -1,11 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pencil } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import ThreadTabs from '../components/ThreadTabs';
 import PostCard from '../components/PostCard';
-import ComposeScreen from './ComposeScreen';
 import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';
 import { useFollows } from '../hooks/useFollows';
@@ -22,7 +20,6 @@ export default function HomeScreen() {
   const { getPostsByThread } = usePosts();
   const { following } = useFollows();
   const [activeThread, setActiveThread] = useState('alertas_brokers');
-  const [composeOpen, setComposeOpen] = useState(false);
 
   // Sort: followed users' posts first (by recency), then others (by recency)
   const posts = useMemo(() => {
@@ -92,21 +89,7 @@ export default function HomeScreen() {
         )}
       </div>
 
-      {/* FAB */}
-      <button
-        onClick={() => setComposeOpen(true)}
-        className="fixed right-4 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold pl-4 pr-5 py-3.5 rounded-full shadow-lg shadow-blue-600/30 btn-press z-30"
-        style={{ bottom: 'calc(68px + env(safe-area-inset-bottom) + 16px)' }}
-      >
-        <Pencil size={18} strokeWidth={2.5} />
-        <span className="text-sm">{language === 'es' ? 'Publicar' : 'Post'}</span>
-      </button>
-
       <BottomNav />
-
-      {composeOpen && (
-        <ComposeScreen onClose={() => setComposeOpen(false)} defaultThread={activeThread} />
-      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, Users, BookOpen } from 'lucide-react';
+import { Home, Search, Users, BookOpen, SquarePen } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export default function BottomNav() {
@@ -10,6 +10,7 @@ export default function BottomNav() {
   const tabs = [
     { id: 'home', path: '/', icon: Home, label_es: 'Inicio', label_en: 'Home' },
     { id: 'search', path: '/search', icon: Search, label_es: 'Buscar', label_en: 'Search' },
+    { id: 'compose', path: '/compose', icon: null, label_es: 'Publicar', label_en: 'Post' },
     { id: 'members', path: '/members', icon: Users, label_es: 'Mi Red', label_en: 'Network' },
     { id: 'guias', path: '/guias', icon: BookOpen, label_es: 'Guías', label_en: 'Guides' },
   ];
@@ -28,13 +29,28 @@ export default function BottomNav() {
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const active = isActive(tab);
+
+          // Center compose button — styled differently
+          if (tab.id === 'compose') {
+            return (
+              <button
+                key={tab.id}
+                onClick={() => navigate(tab.path)}
+                className="flex-1 flex flex-col items-center justify-center gap-1 btn-press"
+              >
+                <div className="w-12 h-12 bg-[#0F1A2E] rounded-full flex items-center justify-center shadow-md -mt-5">
+                  <SquarePen size={20} className="text-white" strokeWidth={2} />
+                </div>
+              </button>
+            );
+          }
+
           return (
             <button
               key={tab.id}
               onClick={() => navigate(tab.path)}
               className="flex-1 flex flex-col items-center justify-center gap-1 btn-press"
             >
-              {/* Active pill background on icon */}
               <div className={`w-14 h-8 flex items-center justify-center rounded-full transition-colors duration-200 ${
                 active ? 'bg-blue-100' : ''
               }`}>

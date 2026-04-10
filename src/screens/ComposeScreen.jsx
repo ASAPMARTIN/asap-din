@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Pin, BarChart2, Plus, Trash2 } from 'lucide-react';
 import BrokerMentionInput from '../components/BrokerMentionInput';
 import { usePosts } from '../hooks/usePosts';
@@ -25,8 +26,10 @@ const THREADS = [
 ];
 
 export default function ComposeScreen({ onClose, defaultThread = null }) {
+  const navigate = useNavigate();
   const { createPostWithPoll } = usePosts();
   const { currentUser, language } = useAuth();
+  const handleClose = onClose || (() => navigate(-1));
   const [thread, setThread] = useState(defaultThread);
   const [body, setBody] = useState('');
   const [pinned, setPinned] = useState(false);
@@ -48,7 +51,7 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
         ? { question: pollQuestion.trim(), options: pollOptions.filter(o => o.trim()) }
         : null;
       createPostWithPoll(thread, body.trim(), pinned, pollData);
-      onClose();
+      handleClose();
     }, 400);
   };
 
@@ -69,7 +72,7 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100 safe-top">
-        <button onClick={onClose} className="p-1.5 rounded-full text-gray-500 hover:bg-gray-100 btn-press">
+        <button onClick={handleClose} className="p-1.5 rounded-full text-gray-500 hover:bg-gray-100 btn-press">
           <X size={22} />
         </button>
         <span className="font-bold text-base text-gray-900">

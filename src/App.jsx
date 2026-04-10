@@ -19,6 +19,7 @@ import SettingsScreen from './screens/SettingsScreen';
 import MemberDirectoryScreen from './screens/MemberDirectoryScreen';
 import MessagesListScreen from './screens/MessagesListScreen';
 import ChatScreen from './screens/ChatScreen';
+import ComposeScreen from './screens/ComposeScreen';
 
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
@@ -39,6 +40,7 @@ function AppRoutes() {
       <Route path="/guias/:id" element={<ResourceDetailScreen />} />
 
       {/* Full-page routes (no bottom nav) */}
+      <Route path="/compose" element={<ComposeScreen />} />
       <Route path="/post/:id" element={<PostDetailScreen />} />
       <Route path="/broker/:id" element={<BrokerProfileScreen />} />
       <Route path="/notifications" element={<NotificationsScreen />} />
