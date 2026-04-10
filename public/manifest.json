@@ -1,0 +1,18 @@
+{
+  "name": "ASAP-DIN",
+  "short_name": "ASAP-DIN",
+  "description": "La red verificada de camioneros independientes",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0F1A2E",
+  "background_color": "#0F1A2E",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
