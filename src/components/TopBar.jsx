@@ -19,7 +19,7 @@ export default function TopBar({ showBack = false, title = null, onBack }) {
   };
 
   return (
-    <header className="bg-[#0F1A2E] text-white safe-top">
+    <header className="bg-[#0F1A2E] text-white safe-top sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 h-14">
         {/* Left side */}
         {showBack ? (
