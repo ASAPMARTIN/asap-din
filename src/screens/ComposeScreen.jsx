@@ -68,7 +68,7 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100">
+      <div className="flex items-center justify-between px-4 h-14 border-b border-gray-100 safe-top">
         <button onClick={onClose} className="p-1.5 rounded-full text-gray-500 hover:bg-gray-100 btn-press">
           <X size={22} />
         </button>
