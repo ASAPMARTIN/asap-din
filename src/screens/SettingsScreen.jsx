@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, LogOut, Trash2, Bell, Globe, CheckCircle } from 'lucide-react';
+import { ChevronRight, LogOut, Trash2, Bell, Globe, CheckCircle, ShieldOff } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import VerifiedBadge from '../components/VerifiedBadge';
 import { useAuth } from '../hooks/useAuth';
+import { useBlocked } from '../hooks/useBlocked';
+import { getUserById } from '../data/mockUsers';
 
 function Toggle({ checked, onChange }) {
   return (
@@ -18,9 +20,11 @@ function Toggle({ checked, onChange }) {
 
 export default function SettingsScreen() {
   const navigate = useNavigate();
-  const { currentUser, language, notifications, toggleLanguage, updateNotifications, logout } = useAuth();
+  const { currentUser, language, notifications, toggleLanguage, updateNotifications, logout, resetOnboarding } = useAuth();
+  const { getBlockedList, unblockUser } = useBlocked();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const blockedList = getBlockedList();
 
   const handleLogout = () => {
     logout();
@@ -172,6 +176,68 @@ export default function SettingsScreen() {
             <p className="text-white/60 text-xs mt-1 leading-snug">
               Tu reputación en DIN te dará acceso prioritario.
             </p>
+          </div>
+        </div>
+
+        {/* Tutorial / Onboarding */}
+        <div className="mt-4 mx-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">
+            {language === 'es' ? 'Tutorial' : 'Tutorial'}
+          </p>
+          <div className="bg-white rounded-2xl overflow-hidden border border-gray-100">
+            <button
+              onClick={() => { resetOnboarding(); navigate('/'); }}
+              className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition-colors"
+            >
+              <span className="text-lg">🎉</span>
+              <span className="text-sm font-medium text-gray-900">
+                {language === 'es' ? 'Mostrar tutorial de bienvenida' : 'Show welcome tutorial'}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Blocked users */}
+        <div className="mt-4 mx-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">
+            {language === 'es' ? 'Usuarios bloqueados' : 'Blocked users'}
+          </p>
+          <div className="bg-white rounded-2xl overflow-hidden border border-gray-100">
+            {blockedList.length === 0 ? (
+              <div className="px-4 py-4">
+                <p className="text-sm text-gray-400">
+                  {language === 'es' ? 'No has bloqueado a nadie.' : 'You haven\'t blocked anyone.'}
+                </p>
+              </div>
+            ) : (
+              blockedList.map((userId, i) => {
+                const blockedUser = getUserById(userId);
+                if (!blockedUser) return null;
+                return (
+                  <div
+                    key={userId}
+                    className={`flex items-center justify-between px-4 py-3.5 ${i < blockedList.length - 1 ? 'border-b border-gray-100' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                        style={{ backgroundColor: blockedUser.avatar_color || '#4B5563' }}
+                      >
+                        {blockedUser.avatar_initials}
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">{blockedUser.display_name}</span>
+                    </div>
+                    <button
+                      onClick={() => unblockUser(userId)}
+                      className="flex items-center gap-1 text-xs text-blue-600 font-semibold px-2.5 py-1.5 rounded-lg bg-blue-50 btn-press"
+                    >
+                      <ShieldOff size={12} />
+                      {language === 'es' ? 'Desbloquear' : 'Unblock'}
+                    </button>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 

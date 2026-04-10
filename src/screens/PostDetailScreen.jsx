@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ThumbsUp, Share2, Pin } from 'lucide-react';
+import { ThumbsUp, Share2, Pin, Bookmark } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import VerifiedBadge from '../components/VerifiedBadge';
 import BrokerChip from '../components/BrokerChip';
 import ReplyCard from '../components/ReplyCard';
 import ShareSheet from '../components/ShareSheet';
 import BrokerMentionInput from '../components/BrokerMentionInput';
+import ImageLightbox from '../components/ImageLightbox';
 import { parseMentions } from '../utils/mentionParser';
 import { timeAgo } from '../utils/timeAgo';
 import { getAvatarColor, getInitials } from '../utils/avatarColor';
@@ -24,13 +25,15 @@ export default function PostDetailScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { language, currentUser } = useAuth();
-  const { getPost, getReplies, upvotePost, hasUpvotedPost, createReply, togglePin } = usePosts();
+  const { getPost, getReplies, upvotePost, hasUpvotedPost, createReply, togglePin, savePost, unsavePost, isSaved } = usePosts();
   const [shareOpen, setShareOpen] = useState(false);
   const [replyBody, setReplyBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const post = getPost(id);
   const replies = getReplies(id);
+  const bookmarked = post ? isSaved(post.id) : false;
 
   if (!post) {
     return (
@@ -103,6 +106,21 @@ export default function PostDetailScreen() {
             ))}
           </p>
 
+          {/* Image */}
+          {post.image_url && (
+            <div
+              className="mb-3 rounded-xl overflow-hidden cursor-pointer"
+              onClick={() => setLightboxOpen(true)}
+            >
+              <img
+                src={post.image_url}
+                alt="Imagen adjunta"
+                className="w-full object-cover rounded-xl"
+                style={{ maxHeight: '220px' }}
+              />
+            </div>
+          )}
+
           {/* Poll (always fully visible in detail view) */}
           {post.poll_options && (
             <div className="mb-3">
@@ -126,6 +144,16 @@ export default function PostDetailScreen() {
             >
               <Share2 size={16} />
               <span>{language === 'es' ? 'Compartir' : 'Share'}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (bookmarked) { unsavePost(post.id); } else { savePost(post.id); }
+              }}
+              className={`flex items-center gap-1.5 text-sm transition-colors ${bookmarked ? 'text-[#0F1A2E]' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              <Bookmark size={16} fill={bookmarked ? 'currentColor' : 'none'} />
+              <span>{bookmarked ? (language === 'es' ? 'Guardado' : 'Saved') : (language === 'es' ? 'Guardar' : 'Save')}</span>
             </button>
 
             {isOwnPost && (
@@ -199,6 +227,10 @@ export default function PostDetailScreen() {
         title="Publicación en ASAP-DIN"
         lang={language}
       />
+
+      {lightboxOpen && post.image_url && (
+        <ImageLightbox src={post.image_url} onClose={() => setLightboxOpen(false)} />
+      )}
     </div>
   );
 }

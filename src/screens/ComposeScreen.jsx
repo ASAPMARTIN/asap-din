@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import { X, Pin, BarChart2, Plus, Trash2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { X, Pin, BarChart2, Plus, Trash2, Camera } from 'lucide-react';
 import BrokerMentionInput from '../components/BrokerMentionInput';
 import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';
 import { getAvatarColor, getInitials } from '../utils/avatarColor';
+import { getUserById } from '../data/mockUsers';
+import { timeAgo } from '../utils/timeAgo';
 
 const THREADS = [
   {
@@ -24,13 +27,42 @@ const THREADS = [
   },
 ];
 
-export default function ComposeScreen({ onClose, defaultThread = null }) {
+function QuotedMiniCard({ post, lang }) {
+  if (!post) return null;
+  const author = getUserById(post.author_id);
+  if (!author) return null;
+  const avatarColor = author.avatar_color || getAvatarColor(author.display_name);
+  return (
+    <div className="mx-4 mt-3 border border-gray-200 rounded-xl p-3 bg-gray-50">
+      <div className="flex items-center gap-2 mb-1.5">
+        <div
+          className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+          style={{ backgroundColor: avatarColor }}
+        >
+          {author.avatar_initials || getInitials(author.display_name)}
+        </div>
+        <span className="text-xs font-semibold text-gray-700">{author.display_name}</span>
+        <span className="text-xs text-gray-400">{timeAgo(post.created_at, lang)}</span>
+      </div>
+      <p className="text-xs text-gray-600 line-clamp-3">{post.body}</p>
+    </div>
+  );
+}
+
+export default function ComposeScreen({ onClose, defaultThread = null, quotedPost = null }) {
+  const location = useLocation();
   const { createPostWithPoll } = usePosts();
   const { currentUser, language } = useAuth();
   const [thread, setThread] = useState(defaultThread);
   const [body, setBody] = useState('');
   const [pinned, setPinned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [image, setImage] = useState(null);
+  const fileInputRef = useRef(null);
+
+  // Support quote repost from location state
+  const quotedPostFromState = location?.state?.quotePost || null;
+  const activeQuotedPost = quotedPost || quotedPostFromState;
 
   // Poll builder
   const [pollOpen, setPollOpen] = useState(false);
@@ -40,6 +72,14 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
   const canPublish = thread && body.trim().length > 0;
   const pollValid = !pollOpen || (pollQuestion.trim() && pollOptions.filter(o => o.trim()).length >= 2);
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setImage(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
   const handlePublish = () => {
     if (!canPublish || !pollValid) return;
     setSubmitting(true);
@@ -47,7 +87,14 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
       const pollData = pollOpen && pollQuestion.trim()
         ? { question: pollQuestion.trim(), options: pollOptions.filter(o => o.trim()) }
         : null;
-      createPostWithPoll(thread, body.trim(), pinned, pollData);
+      createPostWithPoll(
+        thread,
+        body.trim(),
+        pinned,
+        pollData,
+        image || null,
+        activeQuotedPost ? activeQuotedPost.id : null
+      );
       onClose();
     }, 400);
   };
@@ -73,7 +120,9 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
           <X size={22} />
         </button>
         <span className="font-bold text-base text-gray-900">
-          {language === 'es' ? 'Nueva publicación' : 'New post'}
+          {activeQuotedPost
+            ? (language === 'es' ? 'Citar publicación' : 'Quote post')
+            : (language === 'es' ? 'Nueva publicación' : 'New post')}
         </span>
         <button
           onClick={handlePublish}
@@ -149,6 +198,28 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
           </p>
         </div>
 
+        {/* Image preview */}
+        {image && (
+          <div className="mx-4 mt-3 relative inline-block">
+            <img
+              src={image}
+              alt="Preview"
+              className="w-24 h-24 object-cover rounded-xl"
+            />
+            <button
+              onClick={() => setImage(null)}
+              className="absolute -top-2 -right-2 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-xs btn-press"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* Quoted post mini card */}
+        {activeQuotedPost && (
+          <QuotedMiniCard post={activeQuotedPost} lang={language} />
+        )}
+
         {/* Poll builder — appears when toggled */}
         {pollOpen && (
           <div className="mx-4 mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-200 fade-in">
@@ -213,8 +284,24 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
         )}
       </div>
 
-      {/* Footer: pin + poll toggles */}
+      {/* Footer: camera + pin + poll toggles */}
       <div className="border-t border-gray-100 px-4 py-3 pb-safe flex items-center gap-4">
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors btn-press"
+        >
+          <Camera size={18} />
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageChange}
+        />
+
+        <div className="h-5 w-px bg-gray-200" />
+
         <button
           onClick={() => setPinned(!pinned)}
           className={`flex items-center gap-2 text-sm font-medium transition-colors btn-press ${pinned ? 'text-[#0F1A2E]' : 'text-gray-400'}`}

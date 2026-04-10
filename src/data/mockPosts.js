@@ -50,6 +50,8 @@ export const mockPosts = [
     is_pinned_to_profile: true,
     created_at: daysAgo(2),
     mentions: ['b-006'],
+    reactions: { fire: 4, confirmed: 12, warning: 2, frustrated: 1, user_reaction: null },
+    image_url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231d4ed8'/%3E%3Ctext x='200' y='110' text-anchor='middle' font-size='22' fill='white' font-family='sans-serif'%3E%F0%9F%93%B7 Rate Confirmation%3C/text%3E%3C/svg%3E",
   },
   {
     id: 'p-002',
@@ -61,6 +63,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(3),
     mentions: ['b-008'],
+    reactions: { fire: 7, confirmed: 21, warning: 5, frustrated: 3, user_reaction: null },
   },
   {
     id: 'p-003',
@@ -72,6 +75,7 @@ export const mockPosts = [
     is_pinned_to_profile: true,
     created_at: daysAgo(4),
     mentions: ['b-002'],
+    reactions: { fire: 2, confirmed: 8, warning: 6, frustrated: 4, user_reaction: null },
   },
   {
     id: 'p-004',
@@ -116,6 +120,7 @@ export const mockPosts = [
     is_pinned_to_profile: true,
     created_at: daysAgo(7),
     mentions: ['b-042'],
+    reactions: { fire: 15, confirmed: 30, warning: 8, frustrated: 12, user_reaction: null },
   },
   {
     id: 'p-008',
@@ -149,6 +154,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(10),
     mentions: ['b-015'],
+    reactions: { fire: 9, confirmed: 18, warning: 0, frustrated: 0, user_reaction: null },
   },
   {
     id: 'p-011',
@@ -249,6 +255,8 @@ export const mockPosts = [
     is_pinned_to_profile: true,
     created_at: daysAgo(2),
     mentions: ['b-018'],
+    reactions: { fire: 22, confirmed: 35, warning: 0, frustrated: 0, user_reaction: null },
+    image_url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23059669'/%3E%3Ctext x='200' y='110' text-anchor='middle' font-size='22' fill='white' font-family='sans-serif'%3E%F0%9F%93%B7 Truck Stop I-95%3C/text%3E%3C/svg%3E",
   },
   {
     id: 'p-020',
@@ -304,6 +312,8 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(7),
     mentions: [],
+    reactions: { fire: 3, confirmed: 14, warning: 1, frustrated: 2, user_reaction: null },
+    image_url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%23dc2626'/%3E%3Ctext x='200' y='110' text-anchor='middle' font-size='20' fill='white' font-family='sans-serif'%3E%F0%9F%93%B7 Mi Freightliner 2022%3C/text%3E%3C/svg%3E",
   },
   {
     id: 'p-025',
@@ -348,6 +358,7 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: hoursAgo(3),
     mentions: [],
+    reactions: { fire: 6, confirmed: 19, warning: 3, frustrated: 1, user_reaction: null },
   },
   {
     id: 'p-029',
@@ -425,6 +436,34 @@ export const mockPosts = [
     is_pinned_to_profile: false,
     created_at: daysAgo(15),
     mentions: ['b-027'],
+  },
+  {
+    id: 'p-quote-01',
+    author_id: 'u-009',
+    thread: 'alertas_brokers',
+    body: 'Confirmo esto 👆 A mí me pasó exactamente lo mismo con este broker la semana pasada.',
+    upvote_count: 18,
+    reply_count: 3,
+    repost_count: 0,
+    is_pinned_to_profile: false,
+    created_at: hoursAgo(5),
+    mentions: [],
+    is_quote_repost: true,
+    original_post_id: 'p-002',
+  },
+  {
+    id: 'p-quote-02',
+    author_id: 'u-013',
+    thread: 'tarifas_rutas',
+    body: 'Exactamente lo que dice aquí. Miami-Charlotte está prendido esta semana. Confirmado desde mi lado.',
+    upvote_count: 11,
+    reply_count: 2,
+    repost_count: 0,
+    is_pinned_to_profile: false,
+    created_at: daysAgo(1),
+    mentions: [],
+    is_quote_repost: true,
+    original_post_id: 'p-028',
   },
 ];
 

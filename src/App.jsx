@@ -4,6 +4,7 @@ import { PostsProvider } from './hooks/usePosts';
 import { BrokersProvider } from './hooks/useBrokers';
 import { FollowsProvider } from './hooks/useFollows';
 import { MessagesProvider } from './hooks/useMessages';
+import { BlockedProvider } from './hooks/useBlocked';
 
 import InviteScreen from './screens/InviteScreen';
 import SignupScreen from './screens/SignupScreen';
@@ -19,6 +20,7 @@ import SettingsScreen from './screens/SettingsScreen';
 import MemberDirectoryScreen from './screens/MemberDirectoryScreen';
 import MessagesListScreen from './screens/MessagesListScreen';
 import ChatScreen from './screens/ChatScreen';
+import PostSearchScreen from './screens/PostSearchScreen';
 
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
@@ -32,6 +34,7 @@ function AppRoutes() {
       {/* Main app routes */}
       <Route path="/" element={<HomeScreen />} />
       <Route path="/search" element={<BrokerSearchScreen />} />
+      <Route path="/search-posts" element={<PostSearchScreen />} />
       <Route path="/members" element={<MemberDirectoryScreen />} />
       <Route path="/profile" element={<UserProfileScreen />} />
       <Route path="/profile/:id" element={<UserProfileScreen />} />
@@ -56,15 +59,17 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <FollowsProvider>
-          <BrokersProvider>
-            <PostsProvider>
-              <MessagesProvider>
-                <AppRoutes />
-              </MessagesProvider>
-            </PostsProvider>
-          </BrokersProvider>
-        </FollowsProvider>
+        <BlockedProvider>
+          <FollowsProvider>
+            <BrokersProvider>
+              <PostsProvider>
+                <MessagesProvider>
+                  <AppRoutes />
+                </MessagesProvider>
+              </PostsProvider>
+            </BrokersProvider>
+          </FollowsProvider>
+        </BlockedProvider>
       </AuthProvider>
     </BrowserRouter>
   );

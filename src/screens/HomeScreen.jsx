@@ -1,14 +1,16 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pencil } from 'lucide-react';
+import { Pencil, Search } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import ThreadTabs from '../components/ThreadTabs';
 import PostCard from '../components/PostCard';
 import ComposeScreen from './ComposeScreen';
+import OnboardingOverlay from '../components/OnboardingOverlay';
 import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';
 import { useFollows } from '../hooks/useFollows';
+import { useBlocked } from '../hooks/useBlocked';
 import { mockUsers, CURRENT_USER_ID } from '../data/mockUsers';
 
 // 8 most recently active members for stories row
@@ -18,21 +20,23 @@ const storyUsers = [...mockUsers]
 
 export default function HomeScreen() {
   const navigate = useNavigate();
-  const { language } = useAuth();
+  const { language, hasSeenOnboarding } = useAuth();
   const { getPostsByThread } = usePosts();
   const { following } = useFollows();
+  const { isBlocked } = useBlocked();
   const [activeThread, setActiveThread] = useState('alertas_brokers');
   const [composeOpen, setComposeOpen] = useState(false);
 
   // Sort: followed users' posts first (by recency), then others (by recency)
+  // Also filter out blocked authors
   const posts = useMemo(() => {
-    const all = getPostsByThread(activeThread);
+    const all = getPostsByThread(activeThread).filter(p => !isBlocked(p.author_id));
     const followed = all.filter(p => following.has(p.author_id))
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     const others = all.filter(p => !following.has(p.author_id))
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     return [...followed, ...others];
-  }, [getPostsByThread, activeThread, following]);
+  }, [getPostsByThread, activeThread, following, isBlocked]);
 
   return (
     <div className="flex flex-col min-h-dvh" style={{ backgroundColor: '#FAFAF8' }}>
@@ -41,12 +45,22 @@ export default function HomeScreen() {
       <div className="flex-1 overflow-y-auto pb-safe">
         {/* Community header — scrolls away */}
         <div className="bg-white px-4 pt-4 pb-3 border-b border-gray-100">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">ASAP-DIN</p>
-          <p className="text-base font-bold text-gray-900">
-            {language === 'es'
-              ? `${mockUsers.length} camioneros verificados en tu red`
-              : `${mockUsers.length} verified truckers in your network`}
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">ASAP-DIN</p>
+              <p className="text-base font-bold text-gray-900">
+                {language === 'es'
+                  ? `${mockUsers.length} camioneros verificados en tu red`
+                  : `${mockUsers.length} verified truckers in your network`}
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/search-posts')}
+              className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors btn-press"
+            >
+              <Search size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Avatar stories row — scrollable */}
@@ -72,8 +86,18 @@ export default function HomeScreen() {
           </div>
         </div>
 
-        {/* Thread tabs — sticky */}
+        {/* Broker quick-check bar + Thread tabs — sticky together */}
         <div className="sticky top-0 z-10">
+          {/* Broker quick-check pill */}
+          <div className="bg-white px-4 py-2 border-b border-gray-100">
+            <button
+              onClick={() => navigate('/search')}
+              className="w-full flex items-center gap-2 px-4 py-2.5 bg-gray-100 rounded-full text-sm text-gray-500 font-medium hover:bg-gray-200 transition-colors btn-press"
+            >
+              <Search size={16} className="text-gray-400 flex-shrink-0" />
+              <span>{language === 'es' ? '🔍 Verificar un broker...' : '🔍 Verify a broker...'}</span>
+            </button>
+          </div>
           <ThreadTabs activeThread={activeThread} onChange={setActiveThread} lang={language} />
         </div>
 
@@ -105,6 +129,11 @@ export default function HomeScreen() {
 
       {composeOpen && (
         <ComposeScreen onClose={() => setComposeOpen(false)} defaultThread={activeThread} />
+      )}
+
+      {/* Onboarding overlay */}
+      {!hasSeenOnboarding && (
+        <OnboardingOverlay onOpenCompose={() => setComposeOpen(true)} />
       )}
     </div>
   );

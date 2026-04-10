@@ -7,6 +7,7 @@ import VerifiedBadge from '../components/VerifiedBadge';
 import { mockUsers, CURRENT_USER_ID } from '../data/mockUsers';
 import { useAuth } from '../hooks/useAuth';
 import { useFollows } from '../hooks/useFollows';
+import { useBlocked } from '../hooks/useBlocked';
 
 const EQUIPMENT_LABELS = {
   dry_van: '🚛 Dry Van',
@@ -28,11 +29,12 @@ export default function MemberDirectoryScreen() {
   const navigate = useNavigate();
   const { language } = useAuth();
   const { isFollowing, follow, unfollow } = useFollows();
+  const { isBlocked } = useBlocked();
   const [unfollowTarget, setUnfollowTarget] = useState(null);
 
   const you = mockUsers.find(u => u.id === CURRENT_USER_ID);
   const others = mockUsers
-    .filter(u => u.id !== CURRENT_USER_ID)
+    .filter(u => u.id !== CURRENT_USER_ID && !isBlocked(u.id))
     .sort((a, b) => new Date(b.last_active_at) - new Date(a.last_active_at));
   const sorted = [you, ...others].filter(Boolean);
 

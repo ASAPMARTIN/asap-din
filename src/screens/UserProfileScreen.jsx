@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Settings, Pin, MessageCircle, UserPlus, UserCheck } from 'lucide-react';
+import { Settings, Pin, MessageCircle, UserPlus, UserCheck, MoreHorizontal } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import PostCard from '../components/PostCard';
 import VerifiedBadge from '../components/VerifiedBadge';
+import BottomSheet from '../components/BottomSheet';
 import { getAvatarColor, getInitials } from '../utils/avatarColor';
 import { formatDate } from '../utils/timeAgo';
 import { getUserById } from '../data/mockUsers';
 import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';
 import { useFollows } from '../hooks/useFollows';
+import { useBlocked } from '../hooks/useBlocked';
 
 const EQUIPMENT_LABELS = {
   dry_van: '🚛 Dry Van', flatbed: '🏗️ Flatbed', reefer: '❄️ Reefer',
@@ -90,10 +92,13 @@ export default function UserProfileScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser, language } = useAuth();
-  const { getPostsByUser, getPinnedPostsByUser } = usePosts();
+  const { getPostsByUser, getPinnedPostsByUser, getSavedPosts } = usePosts();
   const { isFollowing, follow, unfollow, getFollowingCount, getFollowersCount } = useFollows();
+  const { blockUser } = useBlocked();
   const [activeTab, setActiveTab] = useState('destacados');
   const [unfollowModal, setUnfollowModal] = useState(false);
+  const [blockSheetOpen, setBlockSheetOpen] = useState(false);
+  const [blockToast, setBlockToast] = useState(false);
 
   const user = id ? getUserById(id) : currentUser;
   const isOwnProfile = !id || id === currentUser?.id;
@@ -113,7 +118,15 @@ export default function UserProfileScreen() {
   const avatarColor = user.avatar_color || getAvatarColor(user.display_name);
   const allPosts = getPostsByUser(user.id);
   const pinnedPosts = getPinnedPostsByUser(user.id);
+  const savedPosts = isOwnProfile ? getSavedPosts() : [];
   const totalUpvotes = allPosts.reduce((sum, p) => sum + p.upvote_count, 0);
+
+  const handleBlock = () => {
+    blockUser(user.id);
+    setBlockSheetOpen(false);
+    setBlockToast(true);
+    setTimeout(() => { setBlockToast(false); navigate(-1); }, 1500);
+  };
 
   const following = isFollowing(user.id);
   // For own profile: show how many we follow + how many follow us
@@ -170,6 +183,14 @@ export default function UserProfileScreen() {
                     {following
                       ? <><UserCheck size={15} /><span>{language === 'es' ? 'Siguiendo' : 'Following'}</span></>
                       : <><UserPlus size={15} /><span>{language === 'es' ? 'Seguir' : 'Follow'}</span></>}
+                  </button>
+
+                  {/* More options */}
+                  <button
+                    onClick={() => setBlockSheetOpen(true)}
+                    className="p-2 text-gray-400 hover:text-gray-600 btn-press"
+                  >
+                    <MoreHorizontal size={20} />
                   </button>
                 </>
               )}
@@ -253,6 +274,14 @@ export default function UserProfileScreen() {
           >
             {language === 'es' ? `Actividad (${allPosts.length})` : `Activity (${allPosts.length})`}
           </button>
+          {isOwnProfile && (
+            <button
+              onClick={() => setActiveTab('guardados')}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === 'guardados' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+            >
+              {language === 'es' ? `Guardados (${savedPosts.length})` : `Saved (${savedPosts.length})`}
+            </button>
+          )}
         </div>
 
         {activeTab === 'destacados' && (
@@ -285,9 +314,56 @@ export default function UserProfileScreen() {
             )}
           </div>
         )}
+
+        {activeTab === 'guardados' && isOwnProfile && (
+          <div>
+            {savedPosts.length === 0 ? (
+              <div className="py-16 text-center px-8">
+                <p className="text-gray-400 text-sm">
+                  {language === 'es' ? 'No tienes publicaciones guardadas.' : 'No saved posts yet.'}
+                </p>
+              </div>
+            ) : (
+              savedPosts.map(post => <PostCard key={post.id} post={post} />)
+            )}
+          </div>
+        )}
       </div>
 
       {isOwnProfile && <BottomNav />}
+
+      {/* Block toast */}
+      {blockToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#0F1A2E] text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-lg fade-in pointer-events-none">
+          {language === 'es' ? '✓ Usuario bloqueado' : '✓ User blocked'}
+        </div>
+      )}
+
+      {/* Block confirmation sheet */}
+      <BottomSheet isOpen={blockSheetOpen} onClose={() => setBlockSheetOpen(false)}>
+        <div className="px-4 pb-6 pt-2">
+          <h3 className="text-base font-bold text-gray-900 mb-2 text-center">
+            {language === 'es' ? `¿Bloquear a ${user.display_name}?` : `Block ${user.display_name}?`}
+          </h3>
+          <p className="text-sm text-gray-500 mb-5 text-center">
+            {language === 'es'
+              ? 'Ya no verás sus publicaciones ni podrás interactuar con ellos.'
+              : 'You will no longer see their posts or be able to interact with them.'}
+          </p>
+          <button
+            onClick={handleBlock}
+            className="w-full py-3 bg-red-600 text-white font-bold rounded-2xl mb-3 btn-press"
+          >
+            {language === 'es' ? 'Bloquear' : 'Block'}
+          </button>
+          <button
+            onClick={() => setBlockSheetOpen(false)}
+            className="w-full py-3 bg-gray-100 text-gray-700 font-semibold rounded-2xl btn-press"
+          >
+            {language === 'es' ? 'Cancelar' : 'Cancel'}
+          </button>
+        </div>
+      </BottomSheet>
 
       {/* Unfollow confirmation modal */}
       {unfollowModal && (

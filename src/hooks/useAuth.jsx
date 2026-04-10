@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(getCurrentUser());
   const [language, setLanguage] = useState('es');
   const [notifications, setNotifications] = useState({ pushEnabled: true, digestEnabled: false });
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
 
   const login = () => {
     setIsAuthenticated(true);
@@ -33,17 +34,23 @@ export function AuthProvider({ children }) {
     setNotifications(prev => ({ ...prev, ...updates }));
   };
 
+  const dismissOnboarding = () => setHasSeenOnboarding(true);
+  const resetOnboarding = () => setHasSeenOnboarding(false);
+
   return (
     <AuthContext.Provider value={{
       isAuthenticated,
       currentUser,
       language,
       notifications,
+      hasSeenOnboarding,
       login,
       logout,
       updateProfile,
       toggleLanguage,
       updateNotifications,
+      dismissOnboarding,
+      resetOnboarding,
     }}>
       {children}
     </AuthContext.Provider>
