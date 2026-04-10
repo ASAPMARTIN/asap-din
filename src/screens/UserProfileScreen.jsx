@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Settings, Pin, MessageCircle } from 'lucide-react';
+import { Settings, Pin, MessageCircle, Pencil } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import PostCard from '../components/PostCard';
 import VerifiedBadge from '../components/VerifiedBadge';
+import Avatar from '../components/Avatar';
+import EditProfileSheet from '../components/EditProfileSheet';
 import { getAvatarColor, getInitials } from '../utils/avatarColor';
 import { formatDate } from '../utils/timeAgo';
 import { getUserById } from '../data/mockUsers';
@@ -93,9 +95,11 @@ export default function UserProfileScreen() {
   const { getPostsByUser, getPinnedPostsByUser } = usePosts();
   const { isFollowing, follow, unfollow, getFollowingCount, getFollowersCount } = useFollows();
   const [activeTab, setActiveTab] = useState('destacados');
+  const [editOpen, setEditOpen] = useState(false);
 
-  const user = id ? getUserById(id) : currentUser;
   const isOwnProfile = !id || id === currentUser?.id;
+  // For own profile always use live currentUser so edits appear immediately
+  const user = isOwnProfile ? currentUser : getUserById(id);
 
   if (!user) {
     return (
@@ -109,13 +113,11 @@ export default function UserProfileScreen() {
     );
   }
 
-  const avatarColor = user.avatar_color || getAvatarColor(user.display_name);
   const allPosts = getPostsByUser(user.id);
   const pinnedPosts = getPinnedPostsByUser(user.id);
   const totalUpvotes = allPosts.reduce((sum, p) => sum + p.upvote_count, 0);
 
   const following = isFollowing(user.id);
-  // For own profile: show how many we follow + how many follow us
   const followingCount = isOwnProfile ? getFollowingCount() : null;
   const followersCount = getFollowersCount(user.id);
 
@@ -144,16 +146,13 @@ export default function UserProfileScreen() {
         <div className="bg-white border-b border-gray-100 px-4 pb-5">
           {/* Avatar + actions row */}
           <div className="flex items-end justify-between -mt-10 mb-3">
-            <div
-              className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center text-white text-2xl font-bold shadow-soft"
-              style={{ backgroundColor: avatarColor }}
-            >
-              {user.avatar_initials || getInitials(user.display_name)}
-            </div>
+            <Avatar
+              user={user}
+              className="w-20 h-20 text-2xl border-4 border-white shadow-soft"
+            />
             <div className="flex items-center gap-2 mb-1">
               {!isOwnProfile && (
                 <>
-                  {/* Mensaje button */}
                   <button
                     onClick={() => navigate(`/messages/${user.id}`)}
                     className="flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-gray-200 text-sm font-semibold text-gray-700 btn-press hover:bg-gray-50 transition-colors"
@@ -161,8 +160,6 @@ export default function UserProfileScreen() {
                     <MessageCircle size={15} />
                     <span>{language === 'es' ? 'Mensaje' : 'Message'}</span>
                   </button>
-
-                  {/* Seguir / Siguiendo */}
                   <button
                     onClick={handleFollowToggle}
                     className={`px-4 py-2 rounded-full text-sm font-bold btn-press transition-all ${
@@ -178,9 +175,18 @@ export default function UserProfileScreen() {
                 </>
               )}
               {isOwnProfile && (
-                <button onClick={() => navigate('/settings')} className="p-2 text-gray-400">
-                  <Settings size={22} />
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setEditOpen(true)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-gray-200 text-sm font-semibold text-gray-700 btn-press hover:bg-gray-50 transition-colors"
+                  >
+                    <Pencil size={14} />
+                    <span>{language === 'es' ? 'Editar' : 'Edit'}</span>
+                  </button>
+                  <button onClick={() => navigate('/settings')} className="p-2 text-gray-400 btn-press">
+                    <Settings size={22} />
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -209,11 +215,19 @@ export default function UserProfileScreen() {
           </div>
 
           {/* Bio */}
-          {user.bio && (
+          {user.bio ? (
             <p className="text-base font-medium text-gray-700 mb-4 leading-relaxed">{user.bio}</p>
-          )}
+          ) : isOwnProfile ? (
+            <button
+              onClick={() => setEditOpen(true)}
+              className="text-sm text-blue-500 mb-4 flex items-center gap-1"
+            >
+              <Pencil size={13} />
+              {language === 'es' ? 'Agregar bio...' : 'Add a bio...'}
+            </button>
+          ) : null}
 
-          {/* Stats — following/followers + accomplishments */}
+          {/* Stats */}
           <div className="flex gap-5 py-3 border-t border-gray-100 flex-wrap">
             {isOwnProfile && (
               <div>
@@ -239,7 +253,7 @@ export default function UserProfileScreen() {
             </div>
           </div>
 
-          {/* VIP invite section (own profile) */}
+          {/* Invite section (own profile) */}
           {isOwnProfile && <InviteSection user={user} lang={language} />}
         </div>
 
@@ -292,6 +306,8 @@ export default function UserProfileScreen() {
       </div>
 
       {isOwnProfile && <BottomNav />}
+
+      {editOpen && <EditProfileSheet onClose={() => setEditOpen(false)} />}
     </div>
   );
 }

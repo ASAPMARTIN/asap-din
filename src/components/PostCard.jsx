@@ -5,9 +5,9 @@ import VerifiedBadge from './VerifiedBadge';
 import BrokerChip from './BrokerChip';
 import ShareSheet from './ShareSheet';
 import PollBlock from './PollBlock';
+import Avatar from './Avatar';
 import { parseMentions } from '../utils/mentionParser';
 import { timeAgo } from '../utils/timeAgo';
-import { getAvatarColor, getInitials } from '../utils/avatarColor';
 import { getUserById } from '../data/mockUsers';
 import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';
@@ -50,17 +50,72 @@ function MentionText({ body, truncated = false }) {
   );
 }
 
+function MediaGrid({ media }) {
+  if (!media || media.length === 0) return null;
+
+  if (media.length === 1) {
+    const item = media[0];
+    if (item.type === 'video') {
+      return (
+        <div className="mt-3 rounded-2xl overflow-hidden bg-black">
+          <video
+            src={item.url}
+            controls
+            className="w-full max-h-72 object-contain"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      );
+    }
+    return (
+      <div className="mt-3 rounded-2xl overflow-hidden">
+        <img src={item.url} alt="" className="w-full max-h-80 object-cover" />
+      </div>
+    );
+  }
+
+  if (media.length === 2) {
+    return (
+      <div className="mt-3 grid grid-cols-2 gap-1 rounded-2xl overflow-hidden">
+        {media.map((item, i) => (
+          <img key={i} src={item.url} alt="" className="w-full h-44 object-cover" />
+        ))}
+      </div>
+    );
+  }
+
+  if (media.length === 3) {
+    return (
+      <div className="mt-3 grid grid-cols-2 gap-1 rounded-2xl overflow-hidden" style={{ gridTemplateRows: 'auto auto' }}>
+        <img src={media[0].url} alt="" className="w-full object-cover row-span-2" style={{ height: '192px' }} />
+        <img src={media[1].url} alt="" className="w-full object-cover" style={{ height: '94px' }} />
+        <img src={media[2].url} alt="" className="w-full object-cover" style={{ height: '94px' }} />
+      </div>
+    );
+  }
+
+  // 4 images
+  return (
+    <div className="mt-3 grid grid-cols-2 gap-1 rounded-2xl overflow-hidden">
+      {media.map((item, i) => (
+        <img key={i} src={item.url} alt="" className="w-full h-36 object-cover" />
+      ))}
+    </div>
+  );
+}
+
 export default function PostCard({ post, onClick }) {
   const navigate = useNavigate();
   const { upvotePost, hasUpvotedPost, repostPost, hasReposted } = usePosts();
-  const { language } = useAuth();
+  const { language, currentUser } = useAuth();
   const { isFollowing } = useFollows();
   const [shareOpen, setShareOpen] = useState(false);
 
-  const author = getUserById(post.author_id);
+  // Use live currentUser data for own posts so profile edits reflect immediately
+  const authorFromMock = getUserById(post.author_id);
+  const author = (post.author_id === currentUser?.id) ? currentUser : authorFromMock;
   if (!author) return null;
 
-  const avatarColor = author.avatar_color || getAvatarColor(author.display_name);
   const isUpvoted = hasUpvotedPost(post.id);
   const isReposted = hasReposted(post.id);
   const threadBorder = THREAD_COLORS[post.thread] || 'border-l-gray-200';
@@ -94,17 +149,11 @@ export default function PostCard({ post, onClick }) {
       >
         {/* Author row */}
         <div className="flex items-center gap-3 mb-3">
-          <div
-            className="w-11 h-11 rounded-full flex items-center justify-center text-white text-base font-bold flex-shrink-0 shadow-sm"
-            style={{ backgroundColor: avatarColor }}
-          >
-            {author.avatar_initials || getInitials(author.display_name)}
-          </div>
+          <Avatar user={author} className="w-11 h-11 text-base shadow-sm" />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="font-semibold text-base text-gray-900 truncate">{author.display_name}</span>
               <VerifiedBadge size={16} />
-              {/* Siguiendo chip — subtle, understated */}
               {following && (
                 <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-100 flex-shrink-0">
                   {language === 'es' ? 'Siguiendo' : 'Following'}
@@ -125,7 +174,14 @@ export default function PostCard({ post, onClick }) {
         <div className="mb-3 pl-14">
           <MentionText body={post.body} truncated />
 
-          {/* Poll block (if post has poll) */}
+          {/* Media */}
+          {post.media && post.media.length > 0 && (
+            <div onClick={e => e.stopPropagation()}>
+              <MediaGrid media={post.media} />
+            </div>
+          )}
+
+          {/* Poll block */}
           {post.poll_options && (
             <PollBlock post={post} stopPropagation />
           )}

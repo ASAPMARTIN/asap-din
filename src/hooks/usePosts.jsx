@@ -125,7 +125,7 @@ export function PostsProvider({ children }) {
     }));
   }, []);
 
-  const createPostWithPoll = useCallback((thread, body, isPinned = false, pollData = null) => {
+  const createPostWithPoll = useCallback((thread, body, isPinned = false, pollData = null, media = []) => {
     const newPost = {
       id: `p-new-${Date.now()}`,
       author_id: CURRENT_USER_ID,
@@ -133,9 +133,11 @@ export function PostsProvider({ children }) {
       body,
       upvote_count: 0,
       reply_count: 0,
+      repost_count: 0,
       is_pinned_to_profile: isPinned,
       created_at: new Date().toISOString(),
       mentions: [],
+      media: media || [],
       ...(pollData ? {
         poll_question: pollData.question,
         poll_options: pollData.options.map((text, i) => ({ id: `po-new-${Date.now()}-${i}`, text, vote_count: 0 })),

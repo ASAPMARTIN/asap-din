@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Pin, BarChart2, Plus, Trash2 } from 'lucide-react';
+import { X, Pin, BarChart2, Plus, Trash2, ImagePlus } from 'lucide-react';
 import BrokerMentionInput from '../components/BrokerMentionInput';
+import Avatar from '../components/Avatar';
 import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';
-import { getAvatarColor, getInitials } from '../utils/avatarColor';
 
 const THREADS = [
   {
@@ -30,10 +30,15 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
   const { createPostWithPoll } = usePosts();
   const { currentUser, language } = useAuth();
   const handleClose = onClose || (() => navigate(-1));
+
   const [thread, setThread] = useState(defaultThread);
   const [body, setBody] = useState('');
   const [pinned, setPinned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Media state
+  const [media, setMedia] = useState([]); // [{ type: 'image'|'video', url: string }]
+  const mediaInputRef = useRef();
 
   // Poll builder
   const [pollOpen, setPollOpen] = useState(false);
@@ -50,9 +55,39 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
       const pollData = pollOpen && pollQuestion.trim()
         ? { question: pollQuestion.trim(), options: pollOptions.filter(o => o.trim()) }
         : null;
-      createPostWithPoll(thread, body.trim(), pinned, pollData);
+      createPostWithPoll(thread, body.trim(), pinned, pollData, media);
       handleClose();
     }, 400);
+  };
+
+  const handleMediaSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const hasVideo = files.some(f => f.type.startsWith('video/'));
+    if (hasVideo) {
+      // Video: replace all media with just this video
+      const file = files.find(f => f.type.startsWith('video/'));
+      const reader = new FileReader();
+      reader.onload = (ev) => setMedia([{ type: 'video', url: ev.target.result }]);
+      reader.readAsDataURL(file);
+    } else {
+      // Images: add up to 4 total
+      const remaining = 4 - media.filter(m => m.type === 'image').length;
+      const toAdd = files.slice(0, remaining);
+      toAdd.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          setMedia(prev => [...prev, { type: 'image', url: ev.target.result }]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    e.target.value = '';
+  };
+
+  const removeMedia = (idx) => {
+    setMedia(prev => prev.filter((_, i) => i !== idx));
   };
 
   const addOption = () => {
@@ -67,6 +102,9 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
   const updateOption = (i, val) => {
     setPollOptions(prev => prev.map((o, idx) => idx === i ? val : o));
   };
+
+  const hasVideo = media.some(m => m.type === 'video');
+  const canAddMedia = !hasVideo && media.length < 4 && !pollOpen;
 
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
@@ -121,12 +159,7 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
         <div className="px-4 pt-5">
           {currentUser && (
             <div className="flex items-start gap-3">
-              <div
-                className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                style={{ backgroundColor: currentUser.avatar_color || getAvatarColor(currentUser.display_name) }}
-              >
-                {currentUser.avatar_initials || getInitials(currentUser.display_name)}
-              </div>
+              <Avatar user={currentUser} className="w-11 h-11 text-sm" />
               <div className="flex-1">
                 <p className="font-semibold text-base text-gray-900 mb-3">{currentUser.display_name}</p>
                 <BrokerMentionInput
@@ -150,9 +183,34 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
           <p className="text-xs text-gray-400 mt-3 ml-14">
             {language === 'es' ? '@ para mencionar un broker' : '@ to mention a broker'}
           </p>
+
+          {/* Media preview strip */}
+          {media.length > 0 && (
+            <div className="ml-14 mt-3 flex gap-2 flex-wrap fade-in">
+              {media.map((item, i) => (
+                <div key={i} className="relative rounded-xl overflow-hidden flex-shrink-0">
+                  {item.type === 'video' ? (
+                    <video
+                      src={item.url}
+                      className="w-36 h-24 object-cover"
+                      muted
+                    />
+                  ) : (
+                    <img src={item.url} alt="" className="w-24 h-24 object-cover" />
+                  )}
+                  <button
+                    onClick={() => removeMedia(i)}
+                    className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center btn-press"
+                  >
+                    <X size={12} className="text-white" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Poll builder — appears when toggled */}
+        {/* Poll builder */}
         {pollOpen && (
           <div className="mx-4 mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-200 fade-in">
             <div className="flex items-center justify-between mb-3">
@@ -168,7 +226,6 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
               </button>
             </div>
 
-            {/* Question */}
             <input
               type="text"
               value={pollQuestion}
@@ -178,7 +235,6 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
               autoFocus
             />
 
-            {/* Options */}
             <div className="space-y-2">
               {pollOptions.map((opt, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -202,7 +258,6 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
               ))}
             </div>
 
-            {/* Add option */}
             {pollOptions.length < 4 && (
               <button
                 onClick={addOption}
@@ -216,8 +271,31 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
         )}
       </div>
 
-      {/* Footer: pin + poll toggles */}
+      {/* Footer toolbar */}
       <div className="border-t border-gray-100 px-4 py-3 pb-safe flex items-center gap-4">
+        {/* Media button */}
+        <button
+          onClick={() => canAddMedia && mediaInputRef.current?.click()}
+          disabled={!canAddMedia}
+          className={`flex items-center gap-2 text-sm font-medium transition-colors btn-press ${
+            media.length > 0 ? 'text-blue-600' : canAddMedia ? 'text-gray-400' : 'text-gray-200'
+          }`}
+        >
+          <ImagePlus size={18} />
+          {media.length > 0 && <span className="text-xs font-bold">{media.length}</span>}
+        </button>
+
+        <input
+          ref={mediaInputRef}
+          type="file"
+          accept="image/*,video/*"
+          multiple
+          className="hidden"
+          onChange={handleMediaSelect}
+        />
+
+        <div className="h-5 w-px bg-gray-200" />
+
         <button
           onClick={() => setPinned(!pinned)}
           className={`flex items-center gap-2 text-sm font-medium transition-colors btn-press ${pinned ? 'text-[#0F1A2E]' : 'text-gray-400'}`}
@@ -229,8 +307,11 @@ export default function ComposeScreen({ onClose, defaultThread = null }) {
         <div className="h-5 w-px bg-gray-200" />
 
         <button
-          onClick={() => setPollOpen(!pollOpen)}
-          className={`flex items-center gap-2 text-sm font-medium transition-colors btn-press ${pollOpen ? 'text-[#0F1A2E]' : 'text-gray-400'}`}
+          onClick={() => { if (!media.length) setPollOpen(!pollOpen); }}
+          disabled={media.length > 0}
+          className={`flex items-center gap-2 text-sm font-medium transition-colors btn-press ${
+            pollOpen ? 'text-[#0F1A2E]' : media.length > 0 ? 'text-gray-200' : 'text-gray-400'
+          }`}
         >
           <BarChart2 size={18} />
           <span>{language === 'es' ? 'Encuesta' : 'Poll'}</span>
