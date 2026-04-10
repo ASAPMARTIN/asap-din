@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Bell, MessageCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useMessages } from '../hooks/useMessages';
+import Avatar from './Avatar';
 import { getUnreadCount } from '../data/mockNotifications';
 import { CURRENT_USER_ID } from '../data/mockUsers';
 
@@ -33,10 +34,14 @@ export default function TopBar({ showBack = false, title = null, onBack }) {
             {title && <span className="text-sm font-medium text-white">{title}</span>}
           </button>
         ) : (
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xs font-black">D</span>
-            </div>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => navigate('/profile')}
+              className="btn-press flex-shrink-0"
+              aria-label={language === 'es' ? 'Mi perfil' : 'My profile'}
+            >
+              <Avatar user={currentUser} className="w-8 h-8 text-xs ring-2 ring-white/30" />
+            </button>
             <span className="font-bold text-lg tracking-tight">ASAP-DIN</span>
           </div>
         )}
