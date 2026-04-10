@@ -95,7 +95,8 @@ export default function HomeScreen() {
       {/* FAB */}
       <button
         onClick={() => setComposeOpen(true)}
-        className="fixed bottom-20 right-4 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold pl-4 pr-5 py-3.5 rounded-full shadow-lg shadow-blue-600/30 btn-press z-30"
+        className="fixed right-4 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold pl-4 pr-5 py-3.5 rounded-full shadow-lg shadow-blue-600/30 btn-press z-30"
+        style={{ bottom: 'calc(68px + env(safe-area-inset-bottom) + 16px)' }}
       >
         <Pencil size={18} strokeWidth={2.5} />
         <span className="text-sm">{language === 'es' ? 'Publicar' : 'Post'}</span>
