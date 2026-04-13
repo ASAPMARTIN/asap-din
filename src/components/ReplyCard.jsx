@@ -1,22 +1,51 @@
 import { ThumbsUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import VerifiedBadge from './VerifiedBadge';
 import BrokerChip from './BrokerChip';
+import Avatar from './Avatar';
 import { parseMentions } from '../utils/mentionParser';
 import { timeAgo } from '../utils/timeAgo';
-import { getAvatarColor, getInitials } from '../utils/avatarColor';
 import { getUserById } from '../data/mockUsers';
 import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+
+function ReplyMedia({ media }) {
+  if (!media || media.length === 0) return null;
+
+  if (media.length === 1) {
+    const item = media[0];
+    if (item.type === 'video') {
+      return (
+        <div className="mt-2 rounded-xl overflow-hidden bg-black">
+          <video src={item.url} controls className="w-full max-h-52 object-contain" />
+        </div>
+      );
+    }
+    return (
+      <div className="mt-2 rounded-xl overflow-hidden">
+        <img src={item.url} alt="" className="w-full max-h-56 object-cover" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2 grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+      {media.slice(0, 4).map((item, i) => (
+        <img key={i} src={item.url} alt="" className="w-full h-28 object-cover" />
+      ))}
+    </div>
+  );
+}
 
 export default function ReplyCard({ reply }) {
   const { upvoteReply, hasUpvotedReply } = usePosts();
-  const { language } = useAuth();
+  const { language, currentUser } = useAuth();
   const navigate = useNavigate();
-  const author = getUserById(reply.author_id);
+
+  const authorFromMock = getUserById(reply.author_id);
+  const author = reply.author_id === currentUser?.id ? currentUser : authorFromMock;
   if (!author) return null;
 
-  const avatarColor = author.avatar_color || getAvatarColor(author.display_name);
   const isUpvoted = hasUpvotedReply(reply.id);
   const segments = parseMentions(reply.body);
 
@@ -25,17 +54,16 @@ export default function ReplyCard({ reply }) {
       <div className="flex gap-2">
         <button
           onClick={() => navigate(`/profile/${author.id}`)}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5"
-          style={{ backgroundColor: avatarColor }}
+          className="flex-shrink-0 mt-0.5"
         >
-          {author.avatar_initials || getInitials(author.display_name)}
+          <Avatar user={author} className="w-8 h-8 text-xs" />
         </button>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-1">
             <button
               onClick={() => navigate(`/profile/${author.id}`)}
-              className="text-sm font-medium text-gray-900 hover:underline"
+              className="text-sm font-semibold text-gray-900 hover:underline"
             >
               {author.display_name}
             </button>
@@ -50,6 +78,8 @@ export default function ReplyCard({ reply }) {
                 : <span key={i}>{seg.content}</span>
             ))}
           </p>
+
+          <ReplyMedia media={reply.media} />
 
           <button
             onClick={() => upvoteReply(reply.id)}

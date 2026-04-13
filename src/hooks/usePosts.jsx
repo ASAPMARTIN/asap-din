@@ -88,7 +88,7 @@ export function PostsProvider({ children }) {
     return newPost;
   }, []);
 
-  const createReply = useCallback((postId, body) => {
+  const createReply = useCallback((postId, body, media = []) => {
     const newReply = {
       id: `r-new-${Date.now()}`,
       post_id: postId,
@@ -97,6 +97,7 @@ export function PostsProvider({ children }) {
       upvote_count: 0,
       created_at: new Date().toISOString(),
       mentions: [],
+      media: media || [],
     };
     setReplies(prev => [...prev, newReply]);
     setPosts(prev => prev.map(p =>
