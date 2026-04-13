@@ -3,6 +3,7 @@ import { Users } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import VerifiedBadge from '../components/VerifiedBadge';
+import PeopleYouMayKnow from '../components/PeopleYouMayKnow';
 import { mockUsers, CURRENT_USER_ID } from '../data/mockUsers';
 import { useAuth } from '../hooks/useAuth';
 import { useFollows } from '../hooks/useFollows';
@@ -52,6 +53,11 @@ export default function MemberDirectoryScreen() {
               ? `${mockUsers.length} camioneros verificados en tu red`
               : `${mockUsers.length} verified truckers in your network`}
           </p>
+        </div>
+
+        {/* People you may know */}
+        <div className="mt-3 pb-1">
+          <PeopleYouMayKnow />
         </div>
 
         {/* Member list */}

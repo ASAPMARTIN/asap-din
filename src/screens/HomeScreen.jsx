@@ -6,6 +6,7 @@ import ThreadTabs from '../components/ThreadTabs';
 import PostCard from '../components/PostCard';
 import { usePosts } from '../hooks/usePosts';
 import { useAuth } from '../hooks/useAuth';
+import PeopleYouMayKnow from '../components/PeopleYouMayKnow';
 import { useFollows } from '../hooks/useFollows';
 import { mockUsers, CURRENT_USER_ID } from '../data/mockUsers';
 
@@ -68,6 +69,9 @@ export default function HomeScreen() {
             ))}
           </div>
         </div>
+
+        {/* People you may know */}
+        <PeopleYouMayKnow />
 
         {/* Thread tabs — sticky */}
         <div className="sticky top-0 z-10">
